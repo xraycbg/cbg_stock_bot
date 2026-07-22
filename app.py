@@ -347,6 +347,16 @@ def normalize_state(s):
 
 state = normalize_state(raw_state)
 
+# URL 쿼리 파라미터 기반 프로젝트 카드 클릭 감지 (버튼 요소를 완전히 없앰)
+if "active_proj" in st.query_params:
+    clicked_id = st.query_params["active_proj"]
+    if clicked_id in state.get("projects", {}):
+        state["active_project_id"] = clicked_id
+        db.update_state(state, sha)
+        st.session_state.view_mode = "DETAIL"
+    st.query_params.clear()
+
+
 # 🔒 보안 비밀번호 인증
 env_pwd = os.getenv("APP_PASSWORD")
 if env_pwd and state.get("app_password") != env_pwd:
@@ -486,8 +496,8 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<div class="card-overlay-wrapper">
-<div class="roop-card">
+        card_html = f"""<a href="?active_proj={p_id}" target="_self" style="text-decoration: none; color: inherit; display: block;">
+<div class="roop-card" style="cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; margin-bottom: 16px;">
 <span class="badge-status">진행중</span>
 <div class="roop-card-title">{p['name']}</div>
 <div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
@@ -498,16 +508,10 @@ if st.session_state.view_mode == "LIST":
 <div class="roop-progress-bg">
 <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
 </div>
-</div>"""
+</div>
+</a>"""
         st.markdown(card_html, unsafe_allow_html=True)
 
-        if st.button(" ", key=f"btn_overlay_{p_id}", use_container_width=True):
-            state["active_project_id"] = p_id
-            db.update_state(state, sha)
-            st.session_state.view_mode = "DETAIL"
-            st.rerun()
-
-        st.markdown('</div>', unsafe_allow_html=True)
 
 
 
