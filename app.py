@@ -141,24 +141,31 @@ st.markdown("""
         border-radius: 6px;
     }
     
-    /* 세부 진입 통합 카드 버튼 스타일 */
-    .card-btn-container div[data-testid="stButton"] > button {
-        background: #182035 !important;
+    /* 프로젝트 카드 전체 클릭 스타일 (별도의 하단 [매매 진입] 버튼 전면 삭제) */
+    .project-card-button div[data-testid="stButton"] > button {
+        background: #131929 !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-top: none !important;
-        border-bottom-left-radius: 20px !important;
-        border-bottom-right-radius: 20px !important;
-        border-top-left-radius: 0 !important;
-        border-top-right-radius: 0 !important;
-        padding: 10px 16px !important;
-        color: #818cf8 !important;
-        font-size: 0.85rem !important;
-        font-weight: 700 !important;
+        border-radius: 20px !important;
+        padding: 20px 22px !important;
+        text-align: left !important;
+        width: 100% !important;
+        color: #ffffff !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+        margin-bottom: 16px !important;
     }
-    .card-btn-container div[data-testid="stButton"] > button:hover {
-        background: #202b48 !important;
-        color: #38bdf8 !important;
+    
+    .project-card-button div[data-testid="stButton"] > button:hover {
+        border-color: #6366f1 !important;
+        background: #182035 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(99, 102, 241, 0.2) !important;
     }
+    
+    .project-card-button div[data-testid="stButton"] > button p {
+        text-align: left !important;
+        width: 100% !important;
+    }
+
 
     
     /* 오늘의 주문 2열 카드 (레드 / 블루) */
@@ -471,27 +478,17 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_header = f"""<div style="background:#131929; border:1px solid rgba(255,255,255,0.08); border-top-left-radius:20px; border-top-right-radius:20px; padding:20px 20px 12px 20px;">
-<span class="badge-status">진행중</span>
-<div class="roop-card-title">{p['name']}</div>
-<div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
-<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-top:8px;">
-<span style="color:#64748b;">회차 진행률</span>
-<span style="color:#ffffff;">{turn_cnt}.0 / {splits_cnt}</span>
-</div>
-<div class="roop-progress-bg">
-<div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
-</div>
-</div>"""
-        st.markdown(card_header, unsafe_allow_html=True)
+        # 별도 하단 버튼 0개! 카드 네모 상자 자체가 전체 클릭 영역입니다.
+        card_label = f"### {p['name']}\n*{p['target_etf']} · V4.0 · 전반전*\n\n회차 진행률: **{turn_cnt}.0 / {splits_cnt}** ({prog_pct}%)"
         
-        st.markdown('<div class="card-btn-container">', unsafe_allow_html=True)
-        if st.button(f"👆 {p['name']} 사이클 터치하여 매매 진입", key=f"btn_open_{p_id}", use_container_width=True):
+        st.markdown('<div class="project-card-button">', unsafe_allow_html=True)
+        if st.button(card_label, key=f"p_card_{p_id}", use_container_width=True):
             state["active_project_id"] = p_id
             db.update_state(state, sha)
             st.session_state.view_mode = "DETAIL"
             st.rerun()
-        st.markdown('</div><div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
 
 
     st.stop()
