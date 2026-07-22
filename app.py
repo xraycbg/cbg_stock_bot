@@ -142,7 +142,7 @@ st.markdown("""
     }
     
     /* ------------------------------------------
-       오직 목록 카드(list-card-item)에만 전용 클릭 오버레이 적용 (생성/세부 폼 절대 영향 없음)
+       오직 목록 카드(list-card-item) 각각의 높이(120px)에만 엄격하게 클릭 레이어 밀착
        ------------------------------------------ */
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) {
         position: relative !important;
@@ -151,13 +151,11 @@ st.markdown("""
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] {
         position: absolute !important;
-        top: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: 100% !important;
-        z-index: 999 !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        height: 120px !important;
+        margin-top: -136px !important; /* 해당 카드의 위치로 정확하게 밀착 스냅 */
+        z-index: 50 !important;
         border: none !important;
         background: transparent !important;
         pointer-events: auto !important;
@@ -165,14 +163,14 @@ st.markdown("""
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
         width: 100% !important;
-        height: 100% !important;
+        height: 120px !important;
         margin: 0 !important;
         padding: 0 !important;
     }
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] button {
         width: 100% !important;
-        height: 100% !important;
+        height: 120px !important;
         opacity: 0.001 !important;
         background: transparent !important;
         border: none !important;
@@ -186,13 +184,6 @@ st.markdown("""
         display: block !important;
     }
 
-        cursor: pointer !important;
-        pointer-events: auto !important;
-        touch-action: manipulation !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: block !important;
-    }
 
 
 
