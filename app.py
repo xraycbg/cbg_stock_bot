@@ -83,6 +83,32 @@ st.markdown("""
 # 환경 변수 로드
 load_dotenv()
 
+# ==========================================
+# 🔒 보안 비밀번호 인증 레이어
+# ==========================================
+APP_PASSWORD = os.getenv("APP_PASSWORD", "7777")  # 기본 비밀번호: 7777 (환경변수나 Streamlit Secrets에서 변경 가능)
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.markdown('<div class="title-gradient">🔒 무한매수법 봇 인증</div>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #94a3b8;">계좌 정보 및 매매 승인을 위해 비밀번호를 입력해주세요.</p>', unsafe_allow_html=True)
+    
+    with st.form("auth_form"):
+        password_input = st.text_input("접속 비밀번호 (PIN)", type="password", placeholder="비밀번호 입력")
+        submit_btn = st.form_submit_button("🔓 로그인")
+        
+        if submit_btn:
+            if password_input == APP_PASSWORD:
+                st.session_state.authenticated = True
+                st.success("인증 성공! 대시보드로 이동합니다.")
+                st.rerun()
+            else:
+                st.error("❌ 비밀번호가 올바르지 않습니다.")
+    st.stop()
+
+
 # 세션 상태 초기화
 if "github_db" not in st.session_state:
     st.session_state.github_db = GitHubDB()
