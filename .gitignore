@@ -1,0 +1,15 @@
+# Local environment variables
+.env
+
+# Python caches and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Streamlit logs and configurations
+.streamlit/
+venv/
+env/
+ENV/

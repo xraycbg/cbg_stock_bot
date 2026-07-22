@@ -1,0 +1,11 @@
+{
+  "target_etf": "TQQQ",
+  "total_budget": 10000.0,
+  "splits": 40,
+  "turn": 0,
+  "avg_price": 0.0,
+  "total_shares": 0.0,
+  "total_spent": 0.0,
+  "status": "BUYING",
+  "history": []
+}
