@@ -83,10 +83,26 @@ st.markdown("""
 # 환경 변수 로드
 load_dotenv()
 
+# 세션 상태 DB 초기화
+if "github_db" not in st.session_state:
+    st.session_state.github_db = GitHubDB()
+
+db = st.session_state.github_db
+
+# 깃허브 DB에서 상태 정보 조회
+state, sha = db.get_state()
+
 # ==========================================
-# 🔒 보안 비밀번호 인증 레이어
+# 🔒 보안 비밀번호 인증 & 자동 동기화 레이어
 # ==========================================
-APP_PASSWORD = os.getenv("APP_PASSWORD", "7777")  # 기본 비밀번호: 7777 (환경변수나 Streamlit Secrets에서 변경 가능)
+# Mac 로컬 .env 에 APP_PASSWORD가 설정된 경우 GitHub DB로 자동 동기화
+env_pwd = os.getenv("APP_PASSWORD")
+if env_pwd and state.get("app_password") != env_pwd:
+    state["app_password"] = env_pwd
+    db.update_state(state, sha)
+
+# 최신 비밀번호 결정 (GitHub DB -> .env -> 기본값 7777)
+APP_PASSWORD = state.get("app_password") or env_pwd or "7777"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -108,15 +124,11 @@ if not st.session_state.authenticated:
                 st.error("❌ 비밀번호가 올바르지 않습니다.")
     st.stop()
 
-
-# 세션 상태 초기화
-if "github_db" not in st.session_state:
-    st.session_state.github_db = GitHubDB()
 if "kis_api" not in st.session_state:
     st.session_state.kis_api = KISApi()
 
-db = st.session_state.github_db
 api = st.session_state.kis_api
+
 
 # 타이틀 표시
 st.markdown('<div class="title-gradient">📈 무한매수법 V4.0 반자동 매매</div>', unsafe_allow_html=True)
