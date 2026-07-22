@@ -451,7 +451,7 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<div class="roop-card">
+        card_html = f"""<div class="roop-card" style="margin-bottom: 8px;">
 <span class="badge-status">진행중</span>
 <div class="roop-card-title">{p['name']}</div>
 <div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
@@ -464,38 +464,14 @@ if st.session_state.view_mode == "LIST":
 </div>
 </div>"""
         st.markdown(card_html, unsafe_allow_html=True)
-
         
-        btn_c1, btn_c2, btn_c3 = st.columns([2.5, 1, 1])
-        with btn_c1:
-            if st.button(f"🔍 세부 매매 & 주문", key=f"btn_detail_{p_id}", type="primary", use_container_width=True):
-                state["active_project_id"] = p_id
-                db.update_state(state, sha)
-                st.session_state.view_mode = "DETAIL"
-                st.rerun()
-        with btn_c2:
-            if st.button(f"✏️ 이름", key=f"btn_ren_{p_id}", use_container_width=True):
-                st.session_state[f"show_ren_{p_id}"] = not st.session_state.get(f"show_ren_{p_id}", False)
-        with btn_c3:
-            if st.button(f"🗑️ 삭제", key=f"btn_del_{p_id}", use_container_width=True):
-                del state["projects"][p_id]
-                if state.get("active_project_id") == p_id:
-                    rem = list(state["projects"].keys())
-                    state["active_project_id"] = rem[0] if rem else None
-                db.update_state(state, sha)
-                st.success("삭제되었습니다.")
-                time.sleep(1)
-                st.rerun()
-                
-        if st.session_state.get(f"show_ren_{p_id}", False):
-            with st.form(f"rename_form_{p_id}"):
-                rename_input = st.text_input("새 이름", value=p["name"])
-                if st.form_submit_button("💾 이름 저장"):
-                    if rename_input.strip():
-                        state["projects"][p_id]["name"] = rename_input.strip()
-                        db.update_state(state, sha)
-                        st.session_state[f"show_ren_{p_id}"] = False
-                        st.rerun()
+        if st.button(f"👉 {p['name']} 세부 보기 및 매매", key=f"btn_open_{p_id}", type="primary", use_container_width=True):
+            state["active_project_id"] = p_id
+            db.update_state(state, sha)
+            st.session_state.view_mode = "DETAIL"
+            st.rerun()
+            
+        st.markdown("<div style='margin-bottom: 18px;'></div>", unsafe_allow_html=True)
 
     st.stop()
 
@@ -532,6 +508,33 @@ detail_card_html = f"""<div class="roop-card">
 </div>
 </div>"""
 st.markdown(detail_card_html, unsafe_allow_html=True)
+
+# 세부화면 내부 프로젝트 관리 메뉴 (이름 수정 & 삭제)
+with st.expander(f"⚙️ [{project_data['name']}] 사이클 관리 (이름 수정 및 삭제)"):
+    m_col1, m_col2 = st.columns([3, 1])
+    with m_col1:
+        with st.form("detail_rename_form"):
+            new_name_val = st.text_input("새 사이클 이름", value=project_data["name"])
+            if st.form_submit_button("💾 이름 저장", type="primary"):
+                if new_name_val.strip():
+                    state["projects"][active_id]["name"] = new_name_val.strip()
+                    db.update_state(state, sha)
+                    st.success("이름이 변경되었습니다!")
+                    time.sleep(1)
+                    st.rerun()
+    with m_col2:
+        st.write("")
+        st.write("")
+        if st.button("🗑️ 사이클 삭제", key="del_in_detail", use_container_width=True):
+            del state["projects"][active_id]
+            rem = list(state["projects"].keys())
+            state["active_project_id"] = rem[0] if rem else None
+            db.update_state(state, sha)
+            st.session_state.view_mode = "LIST"
+            st.success("삭제되었습니다.")
+            time.sleep(1)
+            st.rerun()
+
 
 # 시세 및 잔고 API 조회
 with st.spinner(f"[{project_data['name']}] 시세 및 계좌 잔고 로딩 중..."):
