@@ -157,6 +157,23 @@ with st.sidebar:
         st.success(f"환경이 {env_option}로 변경되었습니다.")
     
     st.markdown("---")
+    st.markdown("### 🎯 매매 대상 종목 선택")
+    current_target = state.get("target_etf", "TQQQ")
+    etf_list = ["TQQQ", "SOXL", "BULZ", "TECL", "UPRO", "LABU", "TSLL", "NVDL"]
+    selected_etf = st.selectbox(
+        "대상 ETF 선택",
+        etf_list,
+        index=etf_list.index(current_target) if current_target in etf_list else 0
+    )
+    if selected_etf != current_target:
+        state["target_etf"] = selected_etf
+        # 종목 변경 시 수량/평단가 자동 동기화 준비
+        success, new_sha = db.update_state(state, sha)
+        if success:
+            st.success(f"매매 종목이 {selected_etf}(으)로 변경되었습니다!")
+            st.rerun()
+
+    st.markdown("---")
     st.markdown("### 💾 GitHub DB 연결 상태")
 
     st.text(f"Repo: {db.repo}")
@@ -184,22 +201,24 @@ with st.spinner("GitHub DB 및 계좌 정보 불러오는 중..."):
         
     # 3. 한투 API에서 실제 잔고 및 예수금 조회
     try:
-        holdings, usd_cash = api.get_balance()
+        holdings, usd_cash, account_summary = api.get_balance()
         
         # 특정 종목 잔고 추출
         target_holding = None
         for hold in holdings:
             # KIS API에서 종목코드는 pdno 또는 pd_no에 있음
-            if hold.get("pdno") == target_etf:
+            if hold.get("pdno") == target_etf or hold.get("pd_no") == target_etf:
                 target_holding = hold
                 break
                 
-        actual_shares = float(target_holding.get("allo_qty", 0.0)) if target_holding else 0.0
+        actual_shares = float(target_holding.get("allo_qty", target_holding.get("ccld_qty", 0.0))) if target_holding else 0.0
         actual_avg_price = float(target_holding.get("pchs_avg_pric", 0.0)) if target_holding else 0.0
     except Exception as e:
         actual_shares = 0.0
         actual_avg_price = 0.0
         usd_cash = 0.0
+        holdings = []
+        account_summary = {}
         st.sidebar.error(f"계좌 잔고 조회 실패: {e}")
 
 # ==========================================
@@ -211,21 +230,21 @@ db_avg_price = state.get("avg_price", 0.0)
 is_synced = (db_shares == actual_shares) and (abs(db_avg_price - actual_avg_price) < 0.01)
 
 if is_synced:
-    st.markdown(f'<div class="success-box">✅ <b>일치 완료:</b> 깃허브 DB와 실제 한국투자증권 계좌의 {target_etf} 잔고 정보가 완벽히 일치합니다.</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="success-box">✅ <b>일치 완료:</b> 깃허브 DB와 실제 한국투자증권 계좌의 <b>{target_etf}</b> 잔고 정보가 완벽히 일치합니다.</div>', unsafe_allow_html=True)
 else:
     st.markdown(f'''
     <div class="warning-box">
-        ⚠️ <b>상태 불일치 감지:</b> 깃허브 DB와 실제 한투 계좌 정보가 다릅니다.<br>
+        ⚠️ <b>상태 불일치 감지:</b> 깃허브 DB와 실제 한투 계좌의 <b>{target_etf}</b> 정보가 다릅니다.<br>
         • DB: {db_shares}주 (평단 ${db_avg_price:.2f}) | • 실제 계좌: {actual_shares}주 (평단 ${actual_avg_price:.2f})
     </div>
     ''', unsafe_allow_html=True)
     
     # 싱크 버튼 제공
-    if st.button("🛠️ 깃허브 DB를 실제 한투 계좌 기준으로 맞추기 (동기화)"):
+    if st.button(f"🛠️ 깃허브 DB를 실제 계좌 기준({target_etf})으로 동기화"):
         state["total_shares"] = actual_shares
         state["avg_price"] = actual_avg_price
         state["total_spent"] = actual_shares * actual_avg_price
-        # 익절 시 turn 리셋
+        # 수량이 0인 경우 회차 리셋
         if actual_shares == 0:
             state["turn"] = 0
             state["status"] = "BUYING"
@@ -242,7 +261,7 @@ else:
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown('<div class="card"><div class="card-title">💾 깃허브 DB 상태</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="card"><div class="card-title">💾 깃허브 DB 상태 ({target_etf})</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
     c1.metric("현재 회차 (T)", f"{state.get('turn', 0)} / {state.get('splits', 40)} 회")
     c2.metric("DB 평균 매수가", f"${db_avg_price:.2f}")
@@ -250,12 +269,27 @@ with col1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
-    st.markdown('<div class="card"><div class="card-title">🏦 한국투자증권 실제 계좌 상태</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card"><div class="card-title">🏦 한국투자증권 계좌 현황 & 예수금</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
-    c1.metric("실제 보유 수량", f"{actual_shares} 주")
-    c2.metric("실제 평균 매수가", f"${actual_avg_price:.2f}")
-    c3.metric("사용 가능 예수금", f"${usd_cash:.2f}")
+    c1.metric("사용 가능 예수금 (USD)", f"${usd_cash:,.2f}")
+    c2.metric(f"실제 {target_etf} 수량", f"{actual_shares} 주")
+    c3.metric(f"실제 {target_etf} 평단가", f"${actual_avg_price:.2f}")
     st.markdown('</div>', unsafe_allow_html=True)
+
+if holdings:
+    with st.expander("💼 계좌 내 전체 보유 종목 상세보기"):
+        h_list = []
+        for item in holdings:
+            h_list.append({
+                "종목코드": item.get("pdno", item.get("pd_no", "")),
+                "종목명": item.get("prdt_name", item.get("ovrs_item_name", item.get("pdno", ""))),
+                "보유수량": f"{float(item.get('allo_qty', item.get('ccld_qty', 0))):g} 주",
+                "매입평단가": f"${float(item.get('pchs_avg_pric', 0)):.2f}",
+                "평가금액": f"${float(item.get('ovrs_stck_evlu_amt', 0)):,.2f}"
+            })
+        st.table(pd.DataFrame(h_list))
+
+
 
 # 실시간 시세 메트릭 표시
 st.markdown('<div class="card"><div class="card-title">📊 실시간 시장 시세</div>', unsafe_allow_html=True)

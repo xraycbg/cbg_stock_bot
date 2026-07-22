@@ -114,7 +114,7 @@ class KISApi:
     def get_balance(self):
         """
         해외주식 잔고 및 예수금 정보를 조회합니다.
-        반환값: (보유 종목 리스트, 외화 예수금(달러))
+        반환값: (보유 종목 리스트, 외화 예수금(달러), 요약 딕셔너리)
         """
         token = self.get_access_token()
         url = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-balance"
@@ -142,17 +142,19 @@ class KISApi:
             data = res.json()
             if data.get("rt_cd") == "0":
                 holdings = data.get("output1", [])
-                
-                # 예수금 파싱 (보통 output2의 frcr_dncl_amt_2가 외화 예수금)
                 summary = data.get("output2", {})
-                # 혹시 output2가 비어있거나 frcr_dncl_amt_2가 없으면 외화평가금 등 참조
-                usd_cash = float(summary.get("frcr_dncl_amt_2", 0.0))
                 
-                return holdings, usd_cash
+                # 예수금 파싱 (output2의 frcr_dncl_amt_2 또는 frcr_drwg_psbl_amt)
+                usd_cash = float(summary.get("frcr_dncl_amt_2", 0.0))
+                if usd_cash == 0.0 and "frcr_drwg_psbl_amt" in summary:
+                    usd_cash = float(summary.get("frcr_drwg_psbl_amt", 0.0))
+                
+                return holdings, usd_cash, summary
             else:
                 raise Exception(f"잔고 조회 API 오류: {data.get('msg1')}")
         else:
             raise Exception(f"잔고 조회 HTTP 오류: {res.status_code} - {res.text}")
+
 
     def place_order(self, ticker, qty, price, order_type="34", exchange="NASD"):
         """
