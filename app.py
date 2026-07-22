@@ -375,15 +375,20 @@ if not st.session_state.authenticated:
                 st.error("❌ 비밀번호가 올바르지 않습니다.")
     st.stop()
 
-# URL 쿼리 파라미터 기반 프로젝트 카드 클릭 감지 (버튼 요소를 완전히 없앰)
+# URL 쿼리 파라미터 기반 프로젝트 카드 클릭 감지
 if "active_proj" in st.query_params:
-    clicked_id = st.query_params["active_proj"]
-    if clicked_id in state.get("projects", {}):
+    clicked_id = st.query_params.get("active_proj")
+    if clicked_id and clicked_id in state.get("projects", {}):
         state["active_project_id"] = clicked_id
         db.update_state(state, sha)
         st.session_state.view_mode = "DETAIL"
-    # 인증 토큰 유지
+    # 목록으로 돌아가기 버튼이 무한 루프에 빠지지 않도록 active_proj 파라미터 지우기
+    try:
+        del st.query_params["active_proj"]
+    except Exception:
+        pass
     st.query_params["auth"] = "1"
+
 
 
 # 뷰 모드 관리
@@ -535,8 +540,15 @@ project_data = projects_dict[active_id]
 target_etf = project_data["target_etf"]
 
 if st.button("← 목록으로 돌아가기", key="back_btn"):
+    try:
+        if "active_proj" in st.query_params:
+            del st.query_params["active_proj"]
+    except Exception:
+        pass
+    st.query_params["auth"] = "1"
     st.session_state.view_mode = "LIST"
     st.rerun()
+
 
 # 1:1 루프 앱 카드
 turn_cnt = int(project_data.get('turn', 0))
