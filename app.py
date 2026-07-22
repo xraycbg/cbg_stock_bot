@@ -142,35 +142,35 @@ st.markdown("""
     }
     
     /* ------------------------------------------
-       오직 목록 카드(list-card-item) 각각의 높이(120px)에만 엄격하게 클릭 레이어 밀착
+       오직 목록 카드(list-card-touch) 전용 100% 픽셀-밀착 클릭 레이어
        ------------------------------------------ */
-    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) {
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) {
         position: relative !important;
-        margin-bottom: 16px !important;
+        margin-bottom: 0px !important;
     }
 
-    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] {
-        position: absolute !important;
-        left: 0 !important;
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) + div[data-testid="stElementContainer"] {
+        position: relative !important;
+        margin-top: -134px !important; /* 마크다운 카드 위치로 100% 포개기 */
+        margin-bottom: 16px !important; /* 하단 다른 카드와의 간격 유지 */
         width: 100% !important;
-        height: 120px !important;
-        margin-top: -136px !important; /* 해당 카드의 위치로 정확하게 밀착 스냅 */
-        z-index: 50 !important;
+        height: 118px !important;
+        z-index: 99 !important;
         border: none !important;
         background: transparent !important;
         pointer-events: auto !important;
     }
 
-    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
         width: 100% !important;
-        height: 120px !important;
+        height: 118px !important;
         margin: 0 !important;
         padding: 0 !important;
     }
 
-    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] button {
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) + div[data-testid="stElementContainer"] button {
         width: 100% !important;
-        height: 120px !important;
+        height: 118px !important;
         opacity: 0.001 !important;
         background: transparent !important;
         border: none !important;
@@ -183,6 +183,7 @@ st.markdown("""
         margin: 0 !important;
         display: block !important;
     }
+
 
 
 
@@ -504,7 +505,8 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<div class="roop-card list-card-item">
+        card_html = f"""<div class="roop-card list-card-touch">
+
 
 <span class="badge-status">진행중</span>
 <div class="roop-card-title">{p['name']}</div>
