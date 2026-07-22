@@ -9,6 +9,10 @@ echo "========================================="
 echo "1. 파이썬 라이브러리 검사 및 설치 중..."
 pip install -r requirements.txt
 
+# .env 감시 백그라운드 프로세스 실행
+python3 watch_env.py &
+
 # Streamlit 실행
 echo "2. Streamlit 대시보드 서버 실행 중..."
 streamlit run app.py
+

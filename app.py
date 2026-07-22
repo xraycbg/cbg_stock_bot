@@ -157,21 +157,8 @@ with st.sidebar:
         st.success(f"환경이 {env_option}로 변경되었습니다.")
     
     st.markdown("---")
-    st.markdown("### 🔑 접속 비밀번호 변경")
-    new_pwd_val = st.text_input("새 비밀번호 입력", type="password", key="sidebar_pwd_input")
-    if st.button("💾 새 비밀번호로 변경 및 저장"):
-        if new_pwd_val.strip():
-            state["app_password"] = new_pwd_val.strip()
-            success, new_sha = db.update_state(state, sha)
-            if success:
-                st.success(f"비밀번호가 '{new_pwd_val.strip()}'(으)로 즉시 변경되었습니다!")
-                time.sleep(1)
-                st.rerun()
-        else:
-            st.warning("새 비밀번호를 입력해주세요.")
-
-    st.markdown("---")
     st.markdown("### 💾 GitHub DB 연결 상태")
+
     st.text(f"Repo: {db.repo}")
     st.text(f"Path: {db.file_path}")
     
