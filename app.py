@@ -347,7 +347,7 @@ def normalize_state(s):
 
 state = normalize_state(raw_state)
 
-# 🔒 보안 비밀번호 인증
+# 🔒 보안 비밀번호 인증 (세션 기반: 새로고침 시 반드시 암호 입력 요구)
 env_pwd = os.getenv("APP_PASSWORD")
 if env_pwd and state.get("app_password") != env_pwd:
     state["app_password"] = env_pwd
@@ -355,10 +355,7 @@ if env_pwd and state.get("app_password") != env_pwd:
 
 APP_PASSWORD = state.get("app_password") or env_pwd or "0000"
 
-# URL 쿼리 파라미터 또는 세션 상태에서 인증 성공 유지
-if st.query_params.get("auth") == "1" or st.session_state.get("authenticated", False):
-    st.session_state.authenticated = True
-else:
+if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
@@ -369,25 +366,11 @@ if not st.session_state.authenticated:
         if submit_btn:
             if password_input == APP_PASSWORD:
                 st.session_state.authenticated = True
-                st.query_params["auth"] = "1"
                 st.rerun()
             else:
                 st.error("❌ 비밀번호가 올바르지 않습니다.")
     st.stop()
 
-# URL 쿼리 파라미터 기반 프로젝트 카드 클릭 감지
-if "active_proj" in st.query_params:
-    clicked_id = st.query_params.get("active_proj")
-    if clicked_id and clicked_id in state.get("projects", {}):
-        state["active_project_id"] = clicked_id
-        db.update_state(state, sha)
-        st.session_state.view_mode = "DETAIL"
-    # 목록으로 돌아가기 버튼이 무한 루프에 빠지지 않도록 active_proj 파라미터 지우기
-    try:
-        del st.query_params["active_proj"]
-    except Exception:
-        pass
-    st.query_params["auth"] = "1"
 
 
 
@@ -506,9 +489,8 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<a href="?active_proj={p_id}&auth=1" target="_self" style="text-decoration: none; color: inherit; display: block;">
-
-<div class="roop-card" style="cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; margin-bottom: 16px;">
+        card_html = f"""<div class="card-overlay-wrapper">
+<div class="roop-card">
 <span class="badge-status">진행중</span>
 <div class="roop-card-title">{p['name']}</div>
 <div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
@@ -519,9 +501,17 @@ if st.session_state.view_mode == "LIST":
 <div class="roop-progress-bg">
 <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
 </div>
-</div>
-</a>"""
+</div>"""
         st.markdown(card_html, unsafe_allow_html=True)
+
+        if st.button(" ", key=f"btn_overlay_{p_id}", use_container_width=True):
+            state["active_project_id"] = p_id
+            db.update_state(state, sha)
+            st.session_state.view_mode = "DETAIL"
+            st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
@@ -540,14 +530,9 @@ project_data = projects_dict[active_id]
 target_etf = project_data["target_etf"]
 
 if st.button("← 목록으로 돌아가기", key="back_btn"):
-    try:
-        if "active_proj" in st.query_params:
-            del st.query_params["active_proj"]
-    except Exception:
-        pass
-    st.query_params["auth"] = "1"
     st.session_state.view_mode = "LIST"
     st.rerun()
+
 
 
 # 1:1 루프 앱 카드
