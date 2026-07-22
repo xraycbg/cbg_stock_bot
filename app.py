@@ -142,14 +142,14 @@ st.markdown("""
     }
     
     /* ------------------------------------------
-       아이폰 iOS Safari 호환 100% 카드 터치 오버레이 시스템
+       오직 목록 카드(list-card-item)에만 전용 클릭 오버레이 적용 (생성/세부 폼 절대 영향 없음)
        ------------------------------------------ */
-    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) {
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) {
         position: relative !important;
         margin-bottom: 16px !important;
     }
 
-    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) + div[data-testid="stElementContainer"] {
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
@@ -163,21 +163,29 @@ st.markdown("""
         pointer-events: auto !important;
     }
 
-    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
         width: 100% !important;
         height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
     }
 
-    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) + div[data-testid="stElementContainer"] button {
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-item) + div[data-testid="stElementContainer"] button {
         width: 100% !important;
         height: 100% !important;
-        opacity: 0.001 !important; /* iOS Safari opacity 0 터치 무시 버그 해결 */
+        opacity: 0.001 !important;
         background: transparent !important;
         border: none !important;
         outline: none !important;
         box-shadow: none !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+    }
+
         cursor: pointer !important;
         pointer-events: auto !important;
         touch-action: manipulation !important;
@@ -441,7 +449,6 @@ projects_dict = state.get("projects", {})
 # ➕ 새 사이클 생성 화면
 # ==========================================
 if st.session_state.view_mode == "CREATE" or not projects_dict:
-    st.markdown('<div class="roop-card">', unsafe_allow_html=True)
     st.markdown("### 🚀 새 사이클 (프로젝트) 생성")
     
     new_p_ticker = st.selectbox("🎯 매매 종목 선택", ["SOXL", "TQQQ"], key="create_p_ticker")
@@ -485,7 +492,6 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
             st.session_state.view_mode = "LIST"
             st.rerun()
             
-    st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
 
@@ -507,7 +513,8 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<div class="roop-card">
+        card_html = f"""<div class="roop-card list-card-item">
+
 <span class="badge-status">진행중</span>
 <div class="roop-card-title">{p['name']}</div>
 <div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
