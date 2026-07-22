@@ -571,12 +571,17 @@ else:
 
 buy1_price = db_avg_price if db_avg_price > 0 else current_price
 buy1_qty = math.floor((daily_buy_budget * 0.5) / buy1_price) if buy1_price > 0 else 0
+if buy1_qty == 0 and daily_buy_budget > 0 and buy1_price > 0:
+    buy1_qty = 1  # 0.5회 매수금이 1주 가격보다 적을 경우 무한매수법 V4.0 규칙에 따라 최소 1주 매수
 
 buy2_price = current_price * 1.10
 buy2_qty = math.floor((daily_buy_budget * 0.5) / buy2_price) if buy2_price > 0 else 0
+if buy2_qty == 0 and daily_buy_budget > 0 and buy2_price > 0:
+    buy2_qty = 1  # 0.5회 매수금이 1주 가격보다 적을 경우 무한매수법 V4.0 규칙에 따라 최소 1주 매수
 
 sell_price = db_avg_price * 1.10
 sell_qty = db_shares
+
 
 # ==========================================
 # 🎯 루프 앱 1:1 디자인 "오늘의 주문" 2열 카드

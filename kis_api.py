@@ -81,35 +81,52 @@ class KISApi:
     def get_current_price(self, ticker, exchange="NAS"):
         """
         미국 주식 현재가(시세)를 조회합니다.
-        Exchange 기본값은 나스닥(NAS)입니다. (뉴욕: NYS, 아멕스: AMS)
+        한투 API에서 시세를 제공하지 않거나(모의투자 환경 등) 장외 시간일 경우 실시간 시세를 백업 로드합니다.
         """
-        token = self.get_access_token()
-        url = f"{self.base_url}/uapi/overseas-price/v1/quotations/price"
-        
-        headers = {
-            "content-type": "application/json; charset=utf-8",
-            "authorization": f"Bearer {token}",
-            "appkey": self.appkey,
-            "appsecret": self.appsecret,
-            "tr_id": "HHDFS00000300"  # 시세 조회 TR ID (공통)
-        }
-        
-        params = {
-            "AUTH": "",
-            "EXCD": exchange,
-            "SYMB": ticker
-        }
-        
-        res = requests.get(url, headers=headers, params=params)
-        if res.status_code == 200:
-            data = res.json()
-            if data.get("rt_cd") == "0":
-                # last가 현재가(종가) 정보를 담고 있음
-                return float(data["output"]["last"])
-            else:
-                raise Exception(f"시세 조회 API 오류: {data.get('msg1')}")
-        else:
-            raise Exception(f"시세 조회 HTTP 오류: {res.status_code} - {res.text}")
+        # 1. 한투 API 시세 조회 시도
+        try:
+            token = self.get_access_token()
+            url = f"{self.base_url}/uapi/overseas-price/v1/quotations/price"
+            headers = {
+                "content-type": "application/json; charset=utf-8",
+                "authorization": f"Bearer {token}",
+                "appkey": self.appkey,
+                "appsecret": self.appsecret,
+                "tr_id": "HHDFS00000300"
+            }
+            params = {
+                "AUTH": "",
+                "EXCD": exchange,
+                "SYMB": ticker
+            }
+            res = requests.get(url, headers=headers, params=params, timeout=5)
+            if res.status_code == 200:
+                data = res.json()
+                if data.get("rt_cd") == "0" and data.get("output", {}).get("last"):
+                    last_val = data["output"]["last"].strip()
+                    if last_val:
+                        val = float(last_val)
+                        if val > 0:
+                            return val
+        except Exception as e:
+            print(f"한투 시세 조회 백업 전환: {e}")
+
+        # 2. 백업 실시간 시세 조회 (Yahoo Finance API)
+        try:
+            yf_url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+            yf_headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
+            yf_res = requests.get(yf_url, headers=yf_headers, timeout=5)
+            if yf_res.status_code == 200:
+                chart_data = yf_res.json()
+                meta = chart_data["chart"]["result"][0]["meta"]
+                price = meta.get("regularMarketPrice") or meta.get("previousClose")
+                if price and float(price) > 0:
+                    return float(price)
+        except Exception as e:
+            print(f"Yahoo Finance 시세 조회 실패: {e}")
+
+        return 0.0
+
 
     def get_balance(self):
         """
