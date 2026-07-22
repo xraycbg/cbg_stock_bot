@@ -141,29 +141,37 @@ st.markdown("""
         border-radius: 6px;
     }
     
-    /* 프로젝트 카드 전체 클릭 스타일 (별도의 하단 [매매 진입] 버튼 전면 삭제) */
-    .project-card-button div[data-testid="stButton"] > button {
-        background: #131929 !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 20px !important;
-        padding: 20px 22px !important;
-        text-align: left !important;
-        width: 100% !important;
-        color: #ffffff !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
-        margin-bottom: 16px !important;
+    /* 카드 100% 원본 유지 + 전면 투명 클릭 레이어 */
+    .card-overlay-wrapper {
+        position: relative;
+        margin-bottom: 16px;
+        cursor: pointer;
     }
-    
-    .project-card-button div[data-testid="stButton"] > button:hover {
-        border-color: #6366f1 !important;
-        background: #182035 !important;
+    .card-overlay-wrapper .roop-card {
+        margin-bottom: 0 !important;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .card-overlay-wrapper:hover .roop-card {
+        border-color: rgba(99, 102, 241, 0.4);
         transform: translateY(-2px);
-        box-shadow: 0 12px 28px rgba(99, 102, 241, 0.2) !important;
     }
-    
-    .project-card-button div[data-testid="stButton"] > button p {
-        text-align: left !important;
+    .card-overlay-wrapper div[data-testid="stButton"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+    }
+    .card-overlay-wrapper div[data-testid="stButton"] > button {
         width: 100% !important;
+        height: 100% !important;
+        opacity: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
 
@@ -478,15 +486,27 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        # 별도 하단 버튼 0개! 카드 네모 상자 자체가 전체 클릭 영역입니다.
-        card_label = f"### {p['name']}\n*{p['target_etf']} · V4.0 · 전반전*\n\n회차 진행률: **{turn_cnt}.0 / {splits_cnt}** ({prog_pct}%)"
-        
-        st.markdown('<div class="project-card-button">', unsafe_allow_html=True)
-        if st.button(card_label, key=f"p_card_{p_id}", use_container_width=True):
+        card_html = f"""<div class="card-overlay-wrapper">
+<div class="roop-card">
+<span class="badge-status">진행중</span>
+<div class="roop-card-title">{p['name']}</div>
+<div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
+<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-top:8px;">
+<span style="color:#64748b;">회차 진행률</span>
+<span style="color:#ffffff;">{turn_cnt}.0 / {splits_cnt}</span>
+</div>
+<div class="roop-progress-bg">
+<div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
+</div>
+</div>"""
+        st.markdown(card_html, unsafe_allow_html=True)
+
+        if st.button(" ", key=f"btn_overlay_{p_id}", use_container_width=True):
             state["active_project_id"] = p_id
             db.update_state(state, sha)
             st.session_state.view_mode = "DETAIL"
             st.rerun()
+
         st.markdown('</div>', unsafe_allow_html=True)
 
 
