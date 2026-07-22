@@ -453,21 +453,20 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        st.markdown(f'''
-        <div class="roop-card">
-            <span class="badge-status">진행중</span>
-            <div class="roop-card-title">{p["name"]}</div>
-            <div class="roop-card-sub">{p["target_etf"]} · V4.0 · 전반전</div>
-            
-            <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-top:8px;">
-                <span style="color:#64748b;">회차 진행률</span>
-                <span style="color:#ffffff;">{turn_cnt}.0 / {splits_cnt}</span>
-            </div>
-            <div class="roop-progress-bg">
-                <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
-            </div>
-        </div>
-        ''', unsafe_allow_html=True)
+        card_html = f"""<div class="roop-card">
+<span class="badge-status">진행중</span>
+<div class="roop-card-title">{p['name']}</div>
+<div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
+<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-top:8px;">
+<span style="color:#64748b;">회차 진행률</span>
+<span style="color:#ffffff;">{turn_cnt}.0 / {splits_cnt}</span>
+</div>
+<div class="roop-progress-bg">
+<div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
+</div>
+</div>"""
+        st.markdown(card_html, unsafe_allow_html=True)
+
         
         btn_c1, btn_c2, btn_c3 = st.columns([2.5, 1, 1])
         with btn_c1:
@@ -522,21 +521,19 @@ turn_cnt = int(project_data.get('turn', 0))
 splits_cnt = int(project_data.get('splits', 40))
 prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
 
-st.markdown(f'''
-<div class="roop-card">
-    <span class="badge-status">진행중</span>
-    <div class="roop-card-title">{project_data["name"]}</div>
-    <div class="roop-card-sub">{target_etf} · V4.0 · 전반전</div>
-    
-    <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700;">
-        <span style="color:#64748b;">회차 진행률</span>
-        <span style="color:#ffffff;">{turn_cnt}.0 / {splits_cnt}</span>
-    </div>
-    <div class="roop-progress-bg">
-        <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
-    </div>
+detail_card_html = f"""<div class="roop-card">
+<span class="badge-status">진행중</span>
+<div class="roop-card-title">{project_data['name']}</div>
+<div class="roop-card-sub">{target_etf} · V4.0 · 전반전</div>
+<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700;">
+<span style="color:#64748b;">회차 진행률</span>
+<span style="color:#ffffff;">{turn_cnt}.0 / {splits_cnt}</span>
 </div>
-''', unsafe_allow_html=True)
+<div class="roop-progress-bg">
+<div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
+</div>
+</div>"""
+st.markdown(detail_card_html, unsafe_allow_html=True)
 
 # 시세 및 잔고 API 조회
 with st.spinner(f"[{project_data['name']}] 시세 및 계좌 잔고 로딩 중..."):
@@ -592,39 +589,38 @@ st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; marg
 ord_col1, ord_col2 = st.columns(2)
 
 with ord_col1:
-    st.markdown(f'''
-    <div class="buy-box">
-        <div class="box-title-buy">매수 · LOC</div>
-        <div class="order-row">
-            <div>
-                <span class="price-bold">${buy1_price:.2f}</span>
-                <span class="qty-text"> × {buy1_qty}주</span>
-            </div>
-            <span class="tag-red">평단</span>
-        </div>
-        <div class="order-row">
-            <div>
-                <span class="price-bold">${buy2_price:.2f}</span>
-                <span class="qty-text"> × {buy2_qty}주</span>
-            </div>
-            <span class="tag-red">8.0%</span>
-        </div>
-    </div>
-    ''', unsafe_allow_html=True)
+    buy_html = f"""<div class="buy-box">
+<div class="box-title-buy">매수 · LOC</div>
+<div class="order-row">
+<div>
+<span class="price-bold">${buy1_price:.2f}</span>
+<span class="qty-text"> × {buy1_qty}주</span>
+</div>
+<span class="tag-red">평단</span>
+</div>
+<div class="order-row">
+<div>
+<span class="price-bold">${buy2_price:.2f}</span>
+<span class="qty-text"> × {buy2_qty}주</span>
+</div>
+<span class="tag-red">8.0%</span>
+</div>
+</div>"""
+    st.markdown(buy_html, unsafe_allow_html=True)
 
 with ord_col2:
-    st.markdown(f'''
-    <div class="sell-box">
-        <div class="box-title-sell">매도 · LOC · 지정가</div>
-        <div class="order-row">
-            <div>
-                <span class="price-bold">${sell_price:.2f}</span>
-                <span class="qty-text"> × {sell_qty:g}주</span>
-            </div>
-            <span class="tag-purple">지정가</span>
-        </div>
-    </div>
-    ''', unsafe_allow_html=True)
+    sell_html = f"""<div class="sell-box">
+<div class="box-title-sell">매도 · LOC · 지정가</div>
+<div class="order-row">
+<div>
+<span class="price-bold">${sell_price:.2f}</span>
+<span class="qty-text"> × {sell_qty:g}주</span>
+</div>
+<span class="tag-purple">지정가</span>
+</div>
+</div>"""
+    st.markdown(sell_html, unsafe_allow_html=True)
+
 
 # 한국투자증권 예약주문 승인 섹션
 st.markdown("---")
