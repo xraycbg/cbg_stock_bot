@@ -141,6 +141,26 @@ st.markdown("""
         border-radius: 6px;
     }
     
+    /* 세부 진입 통합 카드 버튼 스타일 */
+    .card-btn-container div[data-testid="stButton"] > button {
+        background: #182035 !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-top: none !important;
+        border-bottom-left-radius: 20px !important;
+        border-bottom-right-radius: 20px !important;
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
+        padding: 10px 16px !important;
+        color: #818cf8 !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+    }
+    .card-btn-container div[data-testid="stButton"] > button:hover {
+        background: #202b48 !important;
+        color: #38bdf8 !important;
+    }
+
+    
     /* 오늘의 주문 2열 카드 (레드 / 블루) */
     .buy-box {
         background: #251217;
@@ -451,7 +471,7 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<div class="roop-card" style="margin-bottom: 8px;">
+        card_header = f"""<div style="background:#131929; border:1px solid rgba(255,255,255,0.08); border-top-left-radius:20px; border-top-right-radius:20px; padding:20px 20px 12px 20px;">
 <span class="badge-status">진행중</span>
 <div class="roop-card-title">{p['name']}</div>
 <div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
@@ -463,15 +483,16 @@ if st.session_state.view_mode == "LIST":
 <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
 </div>
 </div>"""
-        st.markdown(card_html, unsafe_allow_html=True)
+        st.markdown(card_header, unsafe_allow_html=True)
         
-        if st.button(f"👉 {p['name']} 세부 보기 및 매매", key=f"btn_open_{p_id}", type="primary", use_container_width=True):
+        st.markdown('<div class="card-btn-container">', unsafe_allow_html=True)
+        if st.button(f"👆 {p['name']} 사이클 터치하여 매매 진입", key=f"btn_open_{p_id}", use_container_width=True):
             state["active_project_id"] = p_id
             db.update_state(state, sha)
             st.session_state.view_mode = "DETAIL"
             st.rerun()
-            
-        st.markdown("<div style='margin-bottom: 18px;'></div>", unsafe_allow_html=True)
+        st.markdown('</div><div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
+
 
     st.stop()
 
