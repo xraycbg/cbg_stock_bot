@@ -1,5 +1,7 @@
 # Local environment variables
 .env
+token_cache_*.json
+
 
 # Python caches and compiled files
 __pycache__/
