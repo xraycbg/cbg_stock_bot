@@ -80,8 +80,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 환경 변수 로드
-load_dotenv()
+# 환경 변수 로드 (수정사항 즉시 반영)
+load_dotenv(override=True)
+
 
 # 세션 상태 DB 초기화
 if "github_db" not in st.session_state:
