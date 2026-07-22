@@ -251,22 +251,31 @@ if st.session_state.view_mode == "LIST" or not projects_dict:
     
     # 1. 새 프로젝트 생성 영역
     with st.expander("➕ 새 무한매수 4.0 프로젝트 생성 (클릭하여 열기)", expanded=True if not projects_dict else False):
+        col_sel1, _ = st.columns([2, 2])
+        with col_sel1:
+            new_p_ticker = st.selectbox("🎯 매매 종목 선택", ["TQQQ", "SOXL"], key="create_p_ticker")
+        
+        # 선택한 종목의 기존 프로젝트 개수를 파악하여 추천 이름 생성 (예: TQQQ 1차 프로젝트, SOXL 2차 프로젝트)
+        existing_count = sum(1 for p in projects_dict.values() if p.get("target_etf") == new_p_ticker)
+        recommended_name = f"{new_p_ticker} {existing_count + 1}차 프로젝트"
+
         with st.form("create_proj_form"):
             col_c1, col_c2 = st.columns(2)
             with col_c1:
-                new_p_name = st.text_input("프로젝트 이름", value="TQQQ 1차 프로젝트", placeholder="예: TQQQ 1차 사이클, SOXL 1000만원 플랜")
-                new_p_ticker = st.selectbox("🎯 매매 종목 선택", ["TQQQ", "SOXL"])
-            with col_c2:
+                new_p_name = st.text_input("프로젝트 이름", value=recommended_name, placeholder=f"예: {recommended_name}")
                 new_p_budget = st.number_input("💰 총 투자 예산 ($USD)", min_value=100.0, value=10000.0, step=500.0)
+            with col_c2:
                 new_p_splits = st.number_input("⏳ 분할 회차 (Splits)", min_value=10, max_value=60, value=40)
+                st.write("")
+                st.write("")
+                create_submit = st.form_submit_button("✨ 새 루프 V4.0 프로젝트 시작 및 저장", type="primary", use_container_width=True)
                 
-            create_submit = st.form_submit_button("✨ 새 루프 V4.0 프로젝트 시작 및 저장", type="primary")
-            
             if create_submit:
+                final_name = new_p_name.strip() if new_p_name.strip() else recommended_name
                 new_id = f"proj_{int(time.time())}"
                 state["projects"][new_id] = {
                     "id": new_id,
-                    "name": new_p_name.strip() or f"{new_p_ticker} 프로젝트",
+                    "name": final_name,
                     "target_etf": new_p_ticker,
                     "total_budget": float(new_p_budget),
                     "splits": int(new_p_splits),
@@ -281,9 +290,10 @@ if st.session_state.view_mode == "LIST" or not projects_dict:
                 state["active_project_id"] = new_id
                 db.update_state(state, sha)
                 st.session_state.view_mode = "DETAIL"
-                st.success(f"🎉 [{new_p_name}] 프로젝트가 새로 생성되었습니다!")
+                st.success(f"🎉 [{final_name}] 프로젝트가 성공적으로 생성되었습니다!")
                 time.sleep(1)
                 st.rerun()
+
 
     # 2. 기존 프로젝트 카드 목록 출력
     if projects_dict:
