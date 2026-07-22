@@ -364,22 +364,18 @@ with st.sidebar:
         st.rerun()
 
 # ==========================================
-# 루프 앱 상단 헤더 Bar (무한매수 | VR & + 새 사이클)
+# 루프 앱 상단 헤더 Bar (앱 제목 & + 새 사이클)
 # ==========================================
-hdr_col1, hdr_col2 = st.columns([3, 2])
+hdr_col1, hdr_col2 = st.columns([3.2, 1.8])
 
 with hdr_col1:
-    st.markdown('''
-    <div class="segmented-control">
-        <span class="segmented-btn-active">무한매수</span>
-        <span class="segmented-btn-inactive">VR</span>
-    </div>
-    ''', unsafe_allow_html=True)
+    st.markdown('<div class="title-gradient" style="font-size: 1.45rem !important; font-weight:800; margin:0; line-height: 1.4;">📈 루프 무한매수 4.0</div>', unsafe_allow_html=True)
 
 with hdr_col2:
     if st.button("➕ 새 사이클", key="top_new_cycle_btn", use_container_width=True):
         st.session_state.view_mode = "CREATE"
         st.rerun()
+
 
 st.markdown("<br>", unsafe_allow_html=True)
 
