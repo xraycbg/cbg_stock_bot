@@ -142,45 +142,36 @@ st.markdown("""
     }
     
     /* ------------------------------------------
-       루프 앱 1:1 픽셀-퍼펙트 카드 오버레이 클릭 시스템
+       루프 앱 1:1 카드 클릭 시스템 (하단 빈 버튼 상자 100% 제거)
        ------------------------------------------ */
-    .roop-card-wrapper {
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) {
         position: relative !important;
-        margin-bottom: 16px !important;
     }
-    
-    .roop-card-wrapper .roop-card {
-        margin-bottom: 0 !important;
-        transition: transform 0.2s ease, border-color 0.2s ease;
-        cursor: pointer;
-    }
-    
-    .roop-card-wrapper:hover .roop-card {
-        border-color: rgba(99, 102, 241, 0.5);
-        transform: translateY(-2px);
-    }
-    
-    .roop-card-wrapper div[data-testid="stButton"] {
+
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) + div[data-testid="stElementContainer"] {
         position: absolute !important;
-        top: 0 !important;
+        margin-top: -128px !important; /* 카드 높이만큼 상단으로 당김 */
         left: 0 !important;
         width: 100% !important;
-        height: 100% !important;
-        z-index: 10 !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        height: 120px !important;
+        z-index: 20 !important;
+        border: none !important;
+        background: none !important;
     }
-    
-    .roop-card-wrapper div[data-testid="stButton"] > button {
+
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) + div[data-testid="stElementContainer"] button {
         width: 100% !important;
-        height: 100% !important;
+        height: 120px !important;
         opacity: 0 !important;
         background: transparent !important;
         border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
         cursor: pointer !important;
         padding: 0 !important;
         margin: 0 !important;
     }
+
 
 
 
@@ -499,8 +490,7 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<div class="roop-card-wrapper">
-<div class="roop-card">
+        card_html = f"""<div class="roop-card">
 <span class="badge-status">진행중</span>
 <div class="roop-card-title">{p['name']}</div>
 <div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
@@ -520,7 +510,6 @@ if st.session_state.view_mode == "LIST":
             st.session_state.view_mode = "DETAIL"
             st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
 
 
 
