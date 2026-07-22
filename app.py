@@ -458,6 +458,8 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
         if create_submit:
             final_name = new_p_name.strip() if new_p_name.strip() else recommended_name
             new_id = f"proj_{int(time.time())}"
+            if "projects" not in state or not isinstance(state.get("projects"), dict):
+                state["projects"] = {}
             state["projects"][new_id] = {
                 "id": new_id,
                 "name": final_name,
@@ -473,10 +475,9 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
                 "history": []
             }
             state["active_project_id"] = new_id
-            db.update_state(state, sha)
+            _, sha = db.update_state(state, sha)
             st.session_state.view_mode = "DETAIL"
             st.success(f"🎉 [{final_name}] 사이클이 생성되었습니다!")
-            time.sleep(1)
             st.rerun()
 
     if projects_dict:
@@ -486,6 +487,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
             
     st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
+
 
 # ==========================================
 # 📋 VIEW MODE 1: 프로젝트 목록 (LIST)
@@ -579,9 +581,8 @@ with st.expander(f"⚙️ [{project_data['name']}] 사이클 관리 (이름 수�
             if st.form_submit_button("💾 이름 저장", type="primary"):
                 if new_name_val.strip():
                     state["projects"][active_id]["name"] = new_name_val.strip()
-                    db.update_state(state, sha)
+                    _, sha = db.update_state(state, sha)
                     st.success("이름이 변경되었습니다!")
-                    time.sleep(1)
                     st.rerun()
     with m_col2:
         st.write("")
@@ -590,11 +591,11 @@ with st.expander(f"⚙️ [{project_data['name']}] 사이클 관리 (이름 수�
             del state["projects"][active_id]
             rem = list(state["projects"].keys())
             state["active_project_id"] = rem[0] if rem else None
-            db.update_state(state, sha)
-            st.session_state.view_mode = "LIST"
+            _, sha = db.update_state(state, sha)
+            st.session_state.view_mode = "CREATE" if not rem else "LIST"
             st.success("삭제되었습니다.")
-            time.sleep(1)
             st.rerun()
+
 
 
 # 시세 및 잔고 API 조회

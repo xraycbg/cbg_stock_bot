@@ -54,14 +54,13 @@ class GitHubDB:
     def update_state(self, new_state, sha=None):
         """
         새로운 상태(new_state)를 JSON으로 변환하여 깃허브 레포지토리에 저장합니다.
-        기존 파일의 sha 값이 필요합니다.
+        기존 파일의 sha 값이 필요하지만, 없을 경우 또는 SHA 불일치 시 자동으로 최신 SHA를 로드합니다.
         """
-        # 저장할 JSON 문자열을 UTF-8 바이트로 변환 후 base64 인코딩
         content_str = json.dumps(new_state, indent=2, ensure_ascii=False)
         content_bytes = content_str.encode("utf-8")
         content_b64 = base64.b64encode(content_bytes).decode("utf-8")
         
-        # 만약 sha가 제공되지 않았다면 최신 sha를 먼저 조회
+        # 항상 최신 sha 조회 시도
         if not sha:
             _, fetched_sha = self.get_state()
             sha = fetched_sha
@@ -78,8 +77,18 @@ class GitHubDB:
             print("성공적으로 state.json 상태가 깃허브에 업데이트되었습니다.")
             return True, res.json()["content"]["sha"]
         else:
+            # SHA 불일치 (409/422 등) 발생 시 최신 SHA로 자동 1회 재시도
+            print(f"상태 감지 SHA 재동기화 시도 (상태코드: {res.status_code})")
+            _, latest_sha = self.get_state()
+            if latest_sha:
+                payload["sha"] = latest_sha
+                retry_res = requests.put(self.base_url, headers=self.headers, data=json.dumps(payload))
+                if retry_res.status_code in [200, 201]:
+                    print("SHA 재동기화 성공 후 저장되었습니다.")
+                    return True, retry_res.json()["content"]["sha"]
             print(f"상태 업데이트 실패: {res.status_code} - {res.text}")
             return False, sha
+
 
     def _get_default_state(self):
         """기본 상태 딕셔너리를 반환합니다."""
