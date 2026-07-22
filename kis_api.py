@@ -161,12 +161,40 @@ class KISApi:
                 holdings = data.get("output1", [])
                 summary = data.get("output2", {})
                 
-                # 예수금 파싱 (output2의 frcr_dncl_amt_2 또는 frcr_drwg_psbl_amt)
+                # 예수금 파싱 (output2 기본값 확인 후 inquire-psamount로 실제 외화 예수금 조회)
                 usd_cash = float(summary.get("frcr_dncl_amt_2", 0.0))
                 if usd_cash == 0.0 and "frcr_drwg_psbl_amt" in summary:
                     usd_cash = float(summary.get("frcr_drwg_psbl_amt", 0.0))
                 
+                # 해외주식 매수가능금액(외화 예수금) 별도 조회 API 호출
+                try:
+                    ps_url = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-psamount"
+                    tr_id_ps = "VTTS3007R" if self.env == "mock" else "TTTS3007R"
+                    ps_headers = {
+                        "content-type": "application/json",
+                        "authorization": f"Bearer {token}",
+                        "appkey": self.appkey,
+                        "appsecret": self.appsecret,
+                        "tr_id": tr_id_ps
+                    }
+                    ps_params = {
+                        "CANO": self.cano,
+                        "ACNT_PRDT_CD": self.acnt_prdt_cd,
+                        "OVRS_EXCG_CD": "NASD",
+                        "ITEM_CD": "SOXL",
+                        "OVRS_ORD_UNPR": "150.00"
+                    }
+                    ps_res = requests.get(ps_url, headers=ps_headers, params=ps_params)
+                    if ps_res.status_code == 200:
+                        ps_data = ps_res.json().get("output", {})
+                        fetched_cash = float(ps_data.get("ord_psbl_frcr_amt", ps_data.get("ovrs_ord_psbl_amt", 0.0)))
+                        if fetched_cash > 0:
+                            usd_cash = fetched_cash
+                except Exception as e:
+                    print(f"외화 예수금 조회 예외: {e}")
+                
                 return holdings, usd_cash, summary
+
             else:
                 raise Exception(f"잔고 조회 API 오류: {data.get('msg1')}")
         else:
