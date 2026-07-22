@@ -141,38 +141,28 @@ st.markdown("""
         border-radius: 6px;
     }
     
-    /* 카드 100% 원본 유지 + 전면 투명 클릭 레이어 */
-    .card-overlay-wrapper {
-        position: relative;
-        margin-bottom: 16px;
-        cursor: pointer;
-    }
-    .card-overlay-wrapper .roop-card {
-        margin-bottom: 0 !important;
-        transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-    .card-overlay-wrapper:hover .roop-card {
-        border-color: rgba(99, 102, 241, 0.4);
-        transform: translateY(-2px);
-    }
-    .card-overlay-wrapper div[data-testid="stButton"] {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 10;
-    }
-    .card-overlay-wrapper div[data-testid="stButton"] > button {
+    /* 카드 자체를 1개의 단일 버튼으로 스타일링 (하단 빈 버튼 100% 제거) */
+    .roop-single-card-btn div[data-testid="stButton"] > button {
+        background: #131929 !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 20px !important;
+        padding: 20px 22px !important;
+        text-align: left !important;
         width: 100% !important;
-        height: 100% !important;
-        opacity: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        cursor: pointer !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        color: #ffffff !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+        margin-bottom: 16px !important;
+        white-space: pre-wrap !important;
+        line-height: 1.5 !important;
     }
+    
+    .roop-single-card-btn div[data-testid="stButton"] > button:hover {
+        border-color: rgba(99, 102, 241, 0.5) !important;
+        background: #182035 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(99, 102, 241, 0.2) !important;
+    }
+
 
 
     
@@ -489,28 +479,16 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<div class="card-overlay-wrapper">
-<div class="roop-card">
-<span class="badge-status">진행중</span>
-<div class="roop-card-title">{p['name']}</div>
-<div class="roop-card-sub">{p['target_etf']} · V4.0 · 전반전</div>
-<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-top:8px;">
-<span style="color:#64748b;">회차 진행률</span>
-<span style="color:#ffffff;">{turn_cnt}.0 / {splits_cnt}</span>
-</div>
-<div class="roop-progress-bg">
-<div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
-</div>
-</div>"""
-        st.markdown(card_html, unsafe_allow_html=True)
-
-        if st.button(" ", key=f"btn_overlay_{p_id}", use_container_width=True):
+        card_content = f"📈  {p['name']}   ● 진행중\n{p['target_etf']} · V4.0 · 전반전\n\n회차 진행률:  {turn_cnt}.0 / {splits_cnt} ({prog_pct}%)"
+        
+        st.markdown('<div class="roop-single-card-btn">', unsafe_allow_html=True)
+        if st.button(card_content, key=f"single_card_{p_id}", use_container_width=True):
             state["active_project_id"] = p_id
             db.update_state(state, sha)
             st.session_state.view_mode = "DETAIL"
             st.rerun()
-
         st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
