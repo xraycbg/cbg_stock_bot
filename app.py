@@ -57,6 +57,17 @@ st.markdown("""
         margin-bottom: 5px;
     }
     
+    .badge-ticker {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: #ffffff;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    
     .warning-box {
         background-color: rgba(245, 158, 11, 0.1);
         border-left: 5px solid #f59e0b;
@@ -92,19 +103,22 @@ api = st.session_state.kis_api
 raw_state, sha = db.get_state()
 
 # ------------------------------------------
-# 다중 프로젝트 정규화 함수
+# 고유 ID 기반 다중 프로젝트 정규화 함수
 # ------------------------------------------
 def normalize_state(s):
     if not isinstance(s, dict):
         s = {}
     
     if "projects" not in s:
-        # 단일 프로젝트 구조 구 버전 마이그레이션
+        # 기존 단일/종목키 구조를 ID 기반 구조로 변환
         old_target = s.get("target_etf", "TQQQ")
         if old_target not in ["TQQQ", "SOXL"]:
             old_target = "TQQQ"
-        
+            
+        p_id = f"proj_{int(time.time())}"
         legacy_proj = {
+            "id": p_id,
+            "name": f"{old_target} 1차 프로젝트",
             "target_etf": old_target,
             "total_budget": float(s.get("total_budget", 10000.0)),
             "splits": int(s.get("splits", 40)),
@@ -113,22 +127,45 @@ def normalize_state(s):
             "total_shares": float(s.get("total_shares", 0.0)),
             "total_spent": float(s.get("total_spent", 0.0)),
             "status": s.get("status", "BUYING"),
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             "history": s.get("history", [])
         }
         
         s = {
-            "active_project": old_target,
+            "active_project_id": p_id,
             "projects": {
-                old_target: legacy_proj
+                p_id: legacy_proj
             },
             "app_password": s.get("app_password", "0000")
         }
     else:
-        if not s.get("projects"):
-            s["projects"] = {}
-            s["active_project"] = None
-        elif s.get("active_project") not in s["projects"]:
-            s["active_project"] = list(s["projects"].keys())[0] if s["projects"] else None
+        new_projects = {}
+        old_projects = s.get("projects", {})
+        for k, p in old_projects.items():
+            if not isinstance(p, dict):
+                continue
+            # 종목명이 키인 경우 고유 ID 부여
+            p_id = p.get("id", k if k.startswith("proj_") else f"proj_{k}_{int(time.time())}")
+            p_name = p.get("name", f"{p.get('target_etf', 'TQQQ')} 프로젝트")
+            
+            new_projects[p_id] = {
+                "id": p_id,
+                "name": p_name,
+                "target_etf": p.get("target_etf", "TQQQ"),
+                "total_budget": float(p.get("total_budget", 10000.0)),
+                "splits": int(p.get("splits", 40)),
+                "turn": int(p.get("turn", 0)),
+                "avg_price": float(p.get("avg_price", 0.0)),
+                "total_shares": float(p.get("total_shares", 0.0)),
+                "total_spent": float(p.get("total_spent", 0.0)),
+                "status": p.get("status", "BUYING"),
+                "created_at": p.get("created_at", time.strftime("%Y-%m-%d %H:%M:%S")),
+                "history": p.get("history", [])
+            }
+            
+        s["projects"] = new_projects
+        if s.get("active_project_id") not in new_projects:
+            s["active_project_id"] = list(new_projects.keys())[0] if new_projects else None
             
     return s
 
@@ -165,8 +202,12 @@ if not st.session_state.authenticated:
     st.stop()
 
 # ==========================================
-# 사이드바 기본 설정
+# 뷰 모드 관리 (LIST: 목록보기 / DETAIL: 세부사항)
 # ==========================================
+if "view_mode" not in st.session_state:
+    st.session_state.view_mode = "LIST"
+
+# 사이드바 설정
 with st.sidebar:
     st.markdown("### ⚙️ 시스템 설정")
     env_option = st.selectbox(
@@ -182,6 +223,12 @@ with st.sidebar:
         st.success(f"환경이 {env_option}로 변경되었습니다.")
         
     st.markdown("---")
+    st.markdown("### 📂 프로젝트 내비게이션")
+    if st.button("📋 전체 프로젝트 목록 보기", use_container_width=True):
+        st.session_state.view_mode = "LIST"
+        st.rerun()
+        
+    st.markdown("---")
     st.markdown("### 💾 GitHub DB 상태")
     st.text(f"Repo: {db.repo}")
     st.text(f"Path: {db.file_path}")
@@ -191,119 +238,151 @@ with st.sidebar:
 
 # 타이틀 표시
 st.markdown('<div class="title-gradient">📈 루프 무한매수법 V4.0 자동매매</div>', unsafe_allow_html=True)
-st.markdown('<p style="color: #94a3b8; margin-bottom: 25px;">라오어 무한매수법 4.0 전용 프로젝트 관리 및 한국투자증권 자동 예약주문 시스템</p>', unsafe_allow_html=True)
+st.markdown('<p style="color: #94a3b8; margin-bottom: 20px;">라오어 무한매수법 4.0 전용 프로젝트 관리 및 한국투자증권 자동 예약주문 시스템</p>', unsafe_allow_html=True)
 
-# ==========================================
-# 프로젝트 존재 여부 검사 & 생성 화면
-# ==========================================
 projects_dict = state.get("projects", {})
-active_proj_key = state.get("active_project")
 
-# 생성 모드 토글
-if "show_create_form" not in st.session_state:
-    st.session_state.show_create_form = False
-
-# 프로젝트가 아예 없거나 생성 버튼을 눌렀을 때 생성 화면 표시
-if not projects_dict or st.session_state.show_create_form or not active_proj_key:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("## 🚀 새 무한매수법 V4.0 프로젝트 생성")
-    st.write("투자할 종목(TQQQ 또는 SOXL)을 선택하고 총 예산을 설정하여 새 프로젝트를 시작하세요.")
+# ==========================================
+# 📋 VIEW MODE 1: 프로젝트 목록 화면 (LIST)
+# ==========================================
+if st.session_state.view_mode == "LIST" or not projects_dict:
+    st.markdown("## 📂 프로젝트 목록")
+    st.write("진행 중인 무한매수 4.0 프로젝트 목록입니다. 세부사항을 보거나 새 프로젝트를 생성하세요.")
     
-    with st.form("create_project_form"):
-        col_f1, col_f2, col_f3 = st.columns(3)
-        with col_f1:
-            # 이미 존재하는 프로젝트는 목록에서 제외
-            existing_tickers = list(projects_dict.keys())
-            available_tickers = [t for t in ["TQQQ", "SOXL"] if t not in existing_tickers]
-            if not available_tickers:
-                available_tickers = ["TQQQ", "SOXL"]
+    # 1. 새 프로젝트 생성 영역
+    with st.expander("➕ 새 무한매수 4.0 프로젝트 생성 (클릭하여 열기)", expanded=True if not projects_dict else False):
+        with st.form("create_proj_form"):
+            col_c1, col_c2 = st.columns(2)
+            with col_c1:
+                new_p_name = st.text_input("프로젝트 이름", value="TQQQ 1차 프로젝트", placeholder="예: TQQQ 1차 사이클, SOXL 1000만원 플랜")
+                new_p_ticker = st.selectbox("🎯 매매 종목 선택", ["TQQQ", "SOXL"])
+            with col_c2:
+                new_p_budget = st.number_input("💰 총 투자 예산 ($USD)", min_value=100.0, value=10000.0, step=500.0)
+                new_p_splits = st.number_input("⏳ 분할 회차 (Splits)", min_value=10, max_value=60, value=40)
                 
-            form_ticker = st.selectbox("🎯 매매 종목 선택", available_tickers)
-        with col_f2:
-            form_budget = st.number_input("💰 총 투자 예산 ($USD)", min_value=100.0, value=10000.0, step=500.0)
-        with col_f3:
-            form_splits = st.number_input("⏳ 분할 회차 (Splits)", min_value=10, max_value=60, value=40)
+            create_submit = st.form_submit_button("✨ 새 루프 V4.0 프로젝트 시작 및 저장", type="primary")
             
-        form_submit = st.form_submit_button("✨ 루프 V4.0 프로젝트 생성 및 매매 시작", type="primary")
-        
-        if form_submit:
-            state["projects"][form_ticker] = {
-                "target_etf": form_ticker,
-                "total_budget": float(form_budget),
-                "splits": int(form_splits),
-                "turn": 0,
-                "avg_price": 0.0,
-                "total_shares": 0.0,
-                "total_spent": 0.0,
-                "status": "BUYING",
-                "history": []
-            }
-            state["active_project"] = form_ticker
-            st.session_state.show_create_form = False
-            
-            success, new_sha = db.update_state(state, sha)
-            if success:
-                st.success(f"🎉 [{form_ticker}] 루프 V4.0 프로젝트가 생성되었습니다!")
+            if create_submit:
+                new_id = f"proj_{int(time.time())}"
+                state["projects"][new_id] = {
+                    "id": new_id,
+                    "name": new_p_name.strip() or f"{new_p_ticker} 프로젝트",
+                    "target_etf": new_p_ticker,
+                    "total_budget": float(new_p_budget),
+                    "splits": int(new_p_splits),
+                    "turn": 0,
+                    "avg_price": 0.0,
+                    "total_shares": 0.0,
+                    "total_spent": 0.0,
+                    "status": "BUYING",
+                    "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "history": []
+                }
+                state["active_project_id"] = new_id
+                db.update_state(state, sha)
+                st.session_state.view_mode = "DETAIL"
+                st.success(f"🎉 [{new_p_name}] 프로젝트가 새로 생성되었습니다!")
                 time.sleep(1)
                 st.rerun()
 
+    # 2. 기존 프로젝트 카드 목록 출력
     if projects_dict:
-        if st.button("❌ 프로젝트 생성 취소"):
-            st.session_state.show_create_form = False
-            st.rerun()
-            
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("### 📋 보유 프로젝트 카드 목록")
+        
+        # Grid 배치 (2열)
+        p_items = list(projects_dict.values())
+        for i in range(0, len(p_items), 2):
+            cols = st.columns(2)
+            for j in range(2):
+                if i + j < len(p_items):
+                    p = p_items[i + j]
+                    p_id = p["id"]
+                    with cols[j]:
+                        st.markdown('<div class="card">', unsafe_allow_html=True)
+                        st.markdown(f'<span class="badge-ticker">{p["target_etf"]}</span>', unsafe_allow_html=True)
+                        st.markdown(f'### {p["name"]}')
+                        
+                        mc1, mc2 = st.columns(2)
+                        mc1.metric("진행 회차 (T)", f"{p.get('turn', 0)} / {p.get('splits', 40)} 회")
+                        mc2.metric("총 예산", f"${p.get('total_budget', 0):,.0f}")
+                        
+                        mc3, mc4 = st.columns(2)
+                        mc3.metric("보유 수량", f"{p.get('total_shares', 0)} 주")
+                        mc4.metric("평균 매수가", f"${p.get('avg_price', 0):.2f}")
+                        
+                        st.write(f"⏱️ 생성일: {p.get('created_at', 'N/A')}")
+                        
+                        b_col1, b_col2 = st.columns([2, 1])
+                        with b_col1:
+                            if st.button(f"🔍 세부사항 & 매매 실행", key=f"btn_detail_{p_id}", type="primary", use_container_width=True):
+                                state["active_project_id"] = p_id
+                                db.update_state(state, sha)
+                                st.session_state.view_mode = "DETAIL"
+                                st.rerun()
+                        with b_col2:
+                            if st.button(f"🗑️ 삭제", key=f"btn_del_{p_id}", use_container_width=True):
+                                del state["projects"][p_id]
+                                if state.get("active_project_id") == p_id:
+                                    rem = list(state["projects"].keys())
+                                    state["active_project_id"] = rem[0] if rem else None
+                                db.update_state(state, sha)
+                                st.success("프로젝트가 삭제되었습니다.")
+                                time.sleep(1)
+                                st.rerun()
+
+                        # 이름 수정 Expander
+                        with st.expander("✏️ 프로젝트 이름 수정"):
+                            with st.form(f"rename_form_{p_id}"):
+                                rename_input = st.text_input("새 프로젝트 이름", value=p["name"])
+                                rename_btn = st.form_submit_button("💾 이름 저장")
+                                if rename_btn:
+                                    if rename_input.strip():
+                                        state["projects"][p_id]["name"] = rename_input.strip()
+                                        db.update_state(state, sha)
+                                        st.success("이름이 변경되었습니다!")
+                                        time.sleep(1)
+                                        st.rerun()
+
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
     st.stop()
 
 # ==========================================
-# 프로젝트 선택 및 헤더 컨트롤 Bar
+# 🔍 VIEW MODE 2: 프로젝트 세부사항 및 매매 대시보드 (DETAIL)
 # ==========================================
-st.markdown('<div class="card" style="padding: 18px 24px; margin-bottom: 25px;">', unsafe_allow_html=True)
-col_h1, col_h2, col_h3 = st.columns([3, 1, 1])
+active_id = state.get("active_project_id")
+if not active_id or active_id not in projects_dict:
+    st.session_state.view_mode = "LIST"
+    st.rerun()
 
-with col_h1:
-    project_keys = list(projects_dict.keys())
-    current_idx = project_keys.index(active_proj_key) if active_proj_key in project_keys else 0
-    selected_proj = st.selectbox(
-        "📂 현재 활성 프로젝트 선택",
-        project_keys,
-        index=current_idx,
-        format_func=lambda x: f"📈 {x} 프로젝트 (T={projects_dict[x].get('turn', 0)}/40, 예산 ${projects_dict[x].get('total_budget', 0):,.0f})"
-    )
-    if selected_proj != active_proj_key:
-        state["active_project"] = selected_proj
-        db.update_state(state, sha)
-        st.rerun()
-
-with col_h2:
-    st.write("")
-    st.write("")
-    if len(project_keys) < 2:
-        if st.button("➕ 새 프로젝트 추가", use_container_width=True):
-            st.session_state.show_create_form = True
-            st.rerun()
-
-with col_h3:
-    st.write("")
-    st.write("")
-    if st.button("🗑️ 프로젝트 삭제", use_container_width=True):
-        del state["projects"][active_proj_key]
-        remaining = list(state["projects"].keys())
-        state["active_project"] = remaining[0] if remaining else None
-        db.update_state(state, sha)
-        st.success(f"[{active_proj_key}] 프로젝트가 삭제되었습니다.")
-        time.sleep(1)
-        st.rerun()
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-# ==========================================
-# 활성 프로젝트 데이터 및 API 잔고 조회
-# ==========================================
-project_data = state["projects"][active_proj_key]
+project_data = projects_dict[active_id]
 target_etf = project_data["target_etf"]
 
-with st.spinner(f"[{target_etf} 프로젝트] 시세 및 계좌 잔고 정보 불러오는 중..."):
+# 상단 내비게이션 및 헤더
+n_col1, n_col2 = st.columns([1, 4])
+with n_col1:
+    if st.button("← 📂 프로젝트 목록으로 돌아가기"):
+        st.session_state.view_mode = "LIST"
+        st.rerun()
+
+with n_col2:
+    st.markdown(f'## 📈 [{project_data["name"]}] ({target_etf}) 세부 대시보드')
+
+# 프로젝트 이름 수정 Expander
+with st.expander(f"✏️ 현재 프로젝트 이름 수정 ({project_data['name']})"):
+    with st.form("detail_rename_form"):
+        detail_name_val = st.text_input("프로젝트 이름", value=project_data["name"])
+        detail_rename_btn = st.form_submit_button("💾 변경사항 저장")
+        if detail_rename_btn:
+            if detail_name_val.strip():
+                state["projects"][active_id]["name"] = detail_name_val.strip()
+                db.update_state(state, sha)
+                st.success("프로젝트 이름이 성공적으로 변경되었습니다!")
+                time.sleep(1)
+                st.rerun()
+
+# 데이터 및 시세 API 로드
+with st.spinner(f"[{project_data['name']}] 시세 및 계좌 잔고 정보 불러오는 중..."):
     try:
         current_price = api.get_current_price(target_etf)
     except Exception as e:
@@ -336,11 +415,11 @@ db_avg_price = float(project_data.get("avg_price", 0.0))
 is_synced = (db_shares == actual_shares) and (abs(db_avg_price - actual_avg_price) < 0.01)
 
 if is_synced:
-    st.markdown(f'<div class="success-box">✅ <b>일치 완료:</b> [{target_etf} 프로젝트] DB 정보와 실제 한국투자증권 계좌 잔고가 일치합니다.</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="success-box">✅ <b>일치 완료:</b> [{project_data["name"]}] DB 정보와 실제 한국투자증권 계좌 잔고가 일치합니다.</div>', unsafe_allow_html=True)
 else:
     st.markdown(f'''
     <div class="warning-box">
-        ⚠️ <b>상태 불일치 감지:</b> [{target_etf} 프로젝트] DB와 실제 계좌 수량이 다릅니다.<br>
+        ⚠️ <b>상태 불일치 감지:</b> [{project_data["name"]}] DB와 실제 한투 계좌 수량이 다릅니다.<br>
         • DB: {db_shares}주 (평단 ${db_avg_price:.2f}) | • 실제 계좌: {actual_shares}주 (평단 ${actual_avg_price:.2f})
     </div>
     ''', unsafe_allow_html=True)
@@ -353,20 +432,20 @@ else:
             project_data["turn"] = 0
             project_data["status"] = "BUYING"
             
-        state["projects"][target_etf] = project_data
+        state["projects"][active_id] = project_data
         success, new_sha = db.update_state(state, sha)
         if success:
-            st.success("동기화 완료! 리프레시합니다.")
+            st.success("동기화 완료! 페이지를 새로고침합니다.")
             time.sleep(1)
             st.rerun()
 
 # ==========================================
-# 2. 계좌 현황 대시보드
+# 2. 프로젝트 및 계좌 대시보드
 # ==========================================
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown(f'<div class="card"><div class="card-title">📁 [{target_etf}] 루프 V4.0 프로젝트 현황</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="card"><div class="card-title">📁 [{project_data["name"]}] 루프 V4.0 프로젝트 현황</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
     c1.metric("진행 회차 (T)", f"{project_data.get('turn', 0)} / {project_data.get('splits', 40)} 회")
     c2.metric("DB 평균 매수가", f"${db_avg_price:.2f}")
@@ -394,7 +473,7 @@ if holdings:
             })
         st.table(pd.DataFrame(h_list))
 
-# 실시간 시세 메트릭 표시
+# 실시간 시세 및 손익 표시
 st.markdown('<div class="card"><div class="card-title">📊 실시간 시장 시세 및 평가 손익</div>', unsafe_allow_html=True)
 c1, c2, c3, c4 = st.columns(4)
 c1.metric(f"{target_etf} 현재가", f"${current_price:.2f}")
@@ -411,9 +490,9 @@ c4.metric("평가손익 (수익률)", f"${profit_usd:.2f} ({profit_rt:.2f}%)",
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 3. 무한매수법 V4.0 오늘의 매매 가이드라인
+# 3. 무한매수법 V4.0 매매 가이드라인
 # ==========================================
-st.markdown(f'<div class="card"><div class="card-title">📝 [{target_etf}] 루프 V4.0 오늘의 매매 가이드라인</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="card"><div class="card-title">📝 [{project_data["name"]}] 오늘의 매매 가이드라인</div>', unsafe_allow_html=True)
 
 turn = int(project_data.get("turn", 0))
 splits = int(project_data.get("splits", 40))
@@ -484,7 +563,7 @@ with col_b2:
 with col_s:
     approve_sell = st.checkbox("주문 3 승인 (익절 지정가 매도)", value=True if sell_qty > 0 else False, disabled=sell_qty == 0)
 
-if st.button(f"🚀 [{target_etf}] 주문들을 한국투자증권으로 전송 및 승인", type="primary"):
+if st.button(f"🚀 [{project_data['name']}] 주문들을 한국투자증권으로 전송 및 승인", type="primary"):
     success_orders = 0
     fail_orders = 0
     messages = []
@@ -520,7 +599,7 @@ if st.button(f"🚀 [{target_etf}] 주문들을 한국투자증권으로 전송 
         st.write(msg)
         
     if success_orders > 0 and fail_orders == 0:
-        st.success(f"🎉 모든 주문이 성공적으로 접수되었습니다! [{target_etf}] 회차 정보를 업데이트합니다.")
+        st.success(f"🎉 모든 주문이 성공적으로 접수되었습니다! [{project_data['name']}] 회차 정보를 업데이트합니다.")
         if approve_buy1 or approve_buy2:
             project_data["turn"] = turn + 1
             
@@ -533,7 +612,7 @@ if st.button(f"🚀 [{target_etf}] 주문들을 한국투자증권으로 전송 
             "orders": order_data
         }
         project_data.setdefault("history", []).append(log_entry)
-        state["projects"][target_etf] = project_data
+        state["projects"][active_id] = project_data
         
         db_success, new_sha = db.update_state(state, sha)
         if db_success:
@@ -548,7 +627,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 # ==========================================
 # 5. 수동 상태 조절 (비상용)
 # ==========================================
-with st.expander(f"🛠️ [{target_etf}] 프로젝트 수동 상태 조정 (비상용)"):
+with st.expander(f"🛠️ [{project_data['name']}] 프로젝트 수동 상태 조정 (비상용)"):
     st.write("깃허브 DB의 프로젝트 파라미터를 강제 변경합니다.")
     
     col_s1, col_s2, col_s3 = st.columns(3)
@@ -562,7 +641,7 @@ with st.expander(f"🛠️ [{target_etf}] 프로젝트 수동 상태 조정 (비
         edit_splits = st.number_input("최대 분할수 (Splits)", min_value=1, value=splits)
         edit_status = st.selectbox("진행 모드", ["BUYING", "REVERSE", "FINISHED"], index=["BUYING", "REVERSE", "FINISHED"].index(project_data.get("status", "BUYING")))
 
-    if st.button(f"💾 [{target_etf}] 수동 변경사항 깃허브 DB 저장"):
+    if st.button(f"💾 [{project_data['name']}] 수동 변경사항 깃허브 DB 저장"):
         project_data["turn"] = int(edit_turn)
         project_data["total_budget"] = edit_budget
         project_data["total_shares"] = edit_shares
@@ -571,7 +650,7 @@ with st.expander(f"🛠️ [{target_etf}] 프로젝트 수동 상태 조정 (비
         project_data["status"] = edit_status
         project_data["total_spent"] = edit_shares * edit_avg_price
         
-        state["projects"][target_etf] = project_data
+        state["projects"][active_id] = project_data
         success, new_sha = db.update_state(state, sha)
         if success:
             st.success("수동 변경사항이 정상 적용되었습니다.")
