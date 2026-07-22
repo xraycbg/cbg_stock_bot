@@ -347,16 +347,6 @@ def normalize_state(s):
 
 state = normalize_state(raw_state)
 
-# URL 쿼리 파라미터 기반 프로젝트 카드 클릭 감지 (버튼 요소를 완전히 없앰)
-if "active_proj" in st.query_params:
-    clicked_id = st.query_params["active_proj"]
-    if clicked_id in state.get("projects", {}):
-        state["active_project_id"] = clicked_id
-        db.update_state(state, sha)
-        st.session_state.view_mode = "DETAIL"
-    st.query_params.clear()
-
-
 # 🔒 보안 비밀번호 인증
 env_pwd = os.getenv("APP_PASSWORD")
 if env_pwd and state.get("app_password") != env_pwd:
@@ -365,21 +355,36 @@ if env_pwd and state.get("app_password") != env_pwd:
 
 APP_PASSWORD = state.get("app_password") or env_pwd or "0000"
 
-if "authenticated" not in st.session_state:
+# URL 쿼리 파라미터 또는 세션 상태에서 인증 성공 유지
+if st.query_params.get("auth") == "1" or st.session_state.get("authenticated", False):
+    st.session_state.authenticated = True
+else:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.markdown('<h2 style="font-weight:800; color:#38bdf8;">🔒 루프 4.0 봇 인증</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="font-weight:800; color:#38bdf8;">🔒 무한매수 4.0 봇 인증</h2>', unsafe_allow_html=True)
     with st.form("auth_form"):
         password_input = st.text_input("접속 비밀번호 (PIN)", type="password", placeholder="비밀번호 입력")
         submit_btn = st.form_submit_button("🔓 로그인", type="primary", use_container_width=True)
         if submit_btn:
             if password_input == APP_PASSWORD:
                 st.session_state.authenticated = True
+                st.query_params["auth"] = "1"
                 st.rerun()
             else:
                 st.error("❌ 비밀번호가 올바르지 않습니다.")
     st.stop()
+
+# URL 쿼리 파라미터 기반 프로젝트 카드 클릭 감지 (버튼 요소를 완전히 없앰)
+if "active_proj" in st.query_params:
+    clicked_id = st.query_params["active_proj"]
+    if clicked_id in state.get("projects", {}):
+        state["active_project_id"] = clicked_id
+        db.update_state(state, sha)
+        st.session_state.view_mode = "DETAIL"
+    # 인증 토큰 유지
+    st.query_params["auth"] = "1"
+
 
 # 뷰 모드 관리
 if "view_mode" not in st.session_state:
@@ -496,7 +501,8 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        card_html = f"""<a href="?active_proj={p_id}" target="_self" style="text-decoration: none; color: inherit; display: block;">
+        card_html = f"""<a href="?active_proj={p_id}&auth=1" target="_self" style="text-decoration: none; color: inherit; display: block;">
+
 <div class="roop-card" style="cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; margin-bottom: 16px;">
 <span class="badge-status">진행중</span>
 <div class="roop-card-title">{p['name']}</div>
