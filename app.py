@@ -31,28 +31,36 @@ st.markdown("""
         color: #f8fafc;
     }
     
-    /* 패딩 및 컨테이너 여백 최적화 */
+    /* Streamlit 상단 헤더 영역 투명화 */
+    header[data-testid="stHeader"], [data-testid="stHeader"] {
+        background-color: transparent !important;
+        z-index: 1 !important;
+    }
+    
+    /* 패딩 및 컨테이너 여백 최적화 (아이폰 노치 대응) */
     .block-container {
-        padding-top: 1.2rem !important;
+        padding-top: 4rem !important;
         padding-bottom: 3rem !important;
         max-width: 1050px;
     }
     
-    /* 모바일 반응형 조절 (iPhone 사파리/크롬 대응) */
+    /* 모바일 반응형 조절 (iPhone 사파리/크롬 상단 잘림 방지) */
     @media (max-width: 768px) {
         .block-container {
             padding-left: 0.8rem !important;
             padding-right: 0.8rem !important;
-            padding-top: 0.8rem !important;
+            padding-top: 4.2rem !important;
         }
         .title-gradient {
             font-size: 1.55rem !important;
+            margin-top: 0.3rem !important;
         }
         .card {
             padding: 16px 14px !important;
             border-radius: 16px !important;
             margin-bottom: 14px !important;
         }
+
         [data-testid="stMetricValue"] {
             font-size: 1.2rem !important;
         }
