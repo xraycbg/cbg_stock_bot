@@ -210,9 +210,19 @@ class KISApi:
         token = self.get_access_token()
         url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order"
         
+        # 종목별 한투 해외거래소 코드 자동 매핑 (SOXL -> AMEX / TQQQ -> NASD)
+        t_upper = ticker.upper()
+        if t_upper == "SOXL":
+            actual_exchange = "AMEX"
+        elif t_upper == "TQQQ":
+            actual_exchange = "NASD"
+        else:
+            actual_exchange = exchange
+
         # tr_id 결정 (기본은 매수)
         tr_id = self.tr_id_buy if qty > 0 else self.tr_id_sell
         actual_qty = abs(qty)
+
         
         headers = {
             "content-type": "application/json",
@@ -233,7 +243,8 @@ class KISApi:
         payload = {
             "CANO": self.cano,
             "ACNT_PRDT_CD": self.acnt_prdt_cd,
-            "OVRS_EXCG_CD": exchange,
+            "OVRS_EXCG_CD": actual_exchange,
+
             "PDNO": ticker,
             "ORD_DVSN": actual_order_type,
             "ORD_QTY": str(actual_qty),
