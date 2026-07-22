@@ -194,9 +194,12 @@ class KISApi:
             "tr_id": tr_id
         }
         
+        # 모의투자는 한투 서버 특성상 지정가("00")만 지원되므로 모의투자 시 자동 보정
+        actual_order_type = "00" if (self.env == "mock" and order_type == "34") else order_type
+
         # 가격 소수점 처리 (미국 주식은 $1 이상 종목 소수점 2자리 권장)
         price_str = f"{price:.2f}"
-        if order_type == "01": # 시장가의 경우 가격은 0
+        if actual_order_type == "01": # 시장가의 경우 가격은 0
             price_str = "0"
 
         payload = {
@@ -204,23 +207,32 @@ class KISApi:
             "ACNT_PRDT_CD": self.acnt_prdt_cd,
             "OVRS_EXCG_CD": exchange,
             "PDNO": ticker,
-            "ORD_DVSN": order_type,
+            "ORD_DVSN": actual_order_type,
             "ORD_QTY": str(actual_qty),
-            "ORD_UNPR": price_str
+            "OVRS_ORD_UNPR": price_str,
+            "ORD_SVR_DVSN_CD": "0"
         }
+
         
         res = requests.post(url, headers=headers, data=json.dumps(payload))
         if res.status_code == 200:
             data = res.json()
             if data.get("rt_cd") == "0":
                 print(f"주문 성공 - 종목: {ticker}, 수량: {qty}, 가격: {price}, 유형: {order_type}")
-                return True, data["output"]
+                return True, data.get("output", {})
             else:
-                print(f"주문 실패 API 메시지: {data.get('msg1')}")
-                return False, data.get("msg1")
+                msg = data.get("msg1") or data.get("message") or "주문 오류"
+                print(f"주문 실패 API 메시지: {msg}")
+                return False, msg
         else:
+            try:
+                err_data = res.json()
+                err_msg = err_data.get("msg1") or err_data.get("message") or f"HTTP {res.status_code}"
+            except Exception:
+                err_msg = f"HTTP Error {res.status_code}"
             print(f"주문 HTTP 통신 에러: {res.status_code} - {res.text}")
-            return False, f"HTTP Error {res.status_code}"
+            return False, err_msg
+
 
 if __name__ == "__main__":
     # 로컬 간단 테스트
