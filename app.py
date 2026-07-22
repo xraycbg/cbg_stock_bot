@@ -369,7 +369,8 @@ with st.sidebar:
 hdr_col1, hdr_col2 = st.columns([3.2, 1.8])
 
 with hdr_col1:
-    st.markdown('<div class="title-gradient" style="font-size: 1.45rem !important; font-weight:800; margin:0; line-height: 1.4;">📈 무한매수 v4.0</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title-gradient" style="font-size: 1.45rem !important; font-weight:800; margin:0; line-height: 1.4;">📈 무한매수 4.0</div>', unsafe_allow_html=True)
+
 
 
 with hdr_col2:
