@@ -142,35 +142,50 @@ st.markdown("""
     }
     
     /* ------------------------------------------
-       루프 앱 1:1 카드 클릭 시스템 (하단 빈 버튼 상자 100% 제거)
+       아이폰 iOS Safari 호환 100% 카드 터치 오버레이 시스템
        ------------------------------------------ */
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) {
         position: relative !important;
+        margin-bottom: 16px !important;
     }
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) + div[data-testid="stElementContainer"] {
         position: absolute !important;
-        margin-top: -128px !important; /* 카드 높이만큼 상단으로 당김 */
+        top: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: 120px !important;
-        z-index: 20 !important;
+        height: 100% !important;
+        z-index: 999 !important;
+        margin: 0 !important;
+        padding: 0 !important;
         border: none !important;
-        background: none !important;
+        background: transparent !important;
+        pointer-events: auto !important;
+    }
+
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.roop-card) + div[data-testid="stElementContainer"] button {
         width: 100% !important;
-        height: 120px !important;
-        opacity: 0 !important;
+        height: 100% !important;
+        opacity: 0.001 !important; /* iOS Safari opacity 0 터치 무시 버그 해결 */
         background: transparent !important;
         border: none !important;
         outline: none !important;
         box-shadow: none !important;
         cursor: pointer !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
         padding: 0 !important;
         margin: 0 !important;
+        display: block !important;
     }
+
 
 
 
