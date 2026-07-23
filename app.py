@@ -688,7 +688,7 @@ target_etf = project_data["target_etf"]
 
 b_col1, b_col2 = st.columns([5, 1])
 with b_col1:
-    if st.button("← 내 사이클 목록으로 돌아가기", key="back_btn"):
+    if st.button("← 목록", key="back_btn"):
         st.session_state.view_mode = "LIST"
         st.rerun()
 with b_col2:
