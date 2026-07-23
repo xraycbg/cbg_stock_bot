@@ -540,21 +540,23 @@ if st.session_state.view_mode == "BACKTEST":
                 
                 buy1_p = avg_price if avg_price > 0 else c_price
                 buy1_q = math.floor((daily_budget * 0.5) / buy1_p) if buy1_p > 0 else 0
-                if buy1_q == 0 and daily_budget > 0 and buy1_p > 0:
+                if buy1_q == 0 and daily_budget > 0 and buy1_p > 0 and cash >= buy1_p:
                     buy1_q = 1
                     
                 buy2_p = c_price * 1.10
-                buy2_q = math.floor((daily_budget * 0.5) / buy2_p) if buy2_p > 0 else 0
-                if buy2_q == 0 and daily_budget > 0 and buy2_p > 0:
+                buy2_q = math.floor((daily_budget * 0.5) / c_price) if c_price > 0 else 0
+                if buy2_q == 0 and daily_budget > 0 and c_price > 0 and cash >= c_price:
                     buy2_q = 1
                     
                 sell_p = avg_price * 1.10
                 
                 day_action = "관망"
                 
-                if shares > 0 and (h_price >= sell_p or c_price >= sell_p) and sell_p > 0:
-                    realized_p = (sell_p - avg_price) * shares
-                    cash = cash + (shares * sell_p)
+                # 1. 익절 매도 조건 체크 (당일 고가 >= 목표가 OR 종가 >= 목표가)
+                if shares > 0 and sell_p > 0 and (h_price >= sell_p or c_price >= sell_p):
+                    fill_sell_p = max(float(d.get("open", c_price)), sell_p) if float(d.get("open", c_price)) >= sell_p else sell_p
+                    realized_p = (fill_sell_p - avg_price) * shares
+                    cash = cash + (shares * fill_sell_p)
                     shares = 0.0
                     turn = 0
                     total_spent = 0.0
@@ -562,16 +564,19 @@ if st.session_state.view_mode == "BACKTEST":
                     completed_cycles += 1
                     day_action = f"🎉 익절 매도 (+${realized_p:.2f})"
                 else:
+                    # 2. LOC 매수 조건 체크 (LOC는 종가가 지정가 이하이면 장마감 종가 c_price로 체결됨)
                     executed_q = 0
                     executed_cost = 0.0
                     
-                    if (l_price <= buy1_p or c_price <= buy1_p) and buy1_q > 0 and (cash >= buy1_q * buy1_p):
+                    # 1순위 평단 LOC 매수 체결: 종가 <= 지정가(buy1_p)
+                    if c_price <= buy1_p and buy1_q > 0 and (cash >= buy1_q * c_price):
                         executed_q += buy1_q
-                        executed_cost += buy1_q * buy1_p
+                        executed_cost += buy1_q * c_price
                         
-                    if (h_price >= buy2_p or c_price >= buy2_p) and buy2_q > 0 and (cash >= executed_cost + (buy2_q * buy2_p)):
+                    # 2순위 고가 LOC 매수 체결: 종가 <= 지정가(buy2_p)
+                    if c_price <= buy2_p and buy2_q > 0 and (cash >= executed_cost + (buy2_q * c_price)):
                         executed_q += buy2_q
-                        executed_cost += buy2_q * buy2_p
+                        executed_cost += buy2_q * c_price
                         
                     if executed_q > 0:
                         cash -= executed_cost
@@ -579,7 +584,7 @@ if st.session_state.view_mode == "BACKTEST":
                         total_spent += executed_cost
                         avg_price = total_spent / shares if shares > 0 else 0.0
                         turn += 1
-                        day_action = f"🔴 매수 체결 ({executed_q}주)"
+                        day_action = f"🔴 매수 체결 ({executed_q}주 @ ${c_price:.2f})"
                         
                 portfolio_val = cash + (shares * c_price)
                 sim_timeline.append({
