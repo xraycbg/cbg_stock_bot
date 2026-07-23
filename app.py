@@ -698,7 +698,7 @@ with set_tab:
     with rn_col1:
         new_name_val = st.text_input("새 사이클 이름", value=project_data["name"], label_visibility="collapsed")
     with rn_col2:
-        if st.button("💾 저장", type="primary", use_container_width=True):
+        if st.button("💾 저장", use_container_width=True):
             if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
                 state["projects"][active_id]["name"] = new_name_val.strip()
                 db.update_state(state, sha)
