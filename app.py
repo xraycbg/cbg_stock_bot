@@ -686,275 +686,280 @@ if not active_id or active_id not in projects_dict:
 project_data = projects_dict[active_id]
 target_etf = project_data["target_etf"]
 
-b_col1, b_col2 = st.columns([5, 1])
-with b_col1:
-    if st.button("← 목록", key="back_btn"):
-        st.session_state.view_mode = "LIST"
-        st.rerun()
-with b_col2:
-    with st.popover("⚙️ 설정", use_container_width=True):
-        st.markdown("<div style='font-size:0.9rem; font-weight:700; color:#cbd5e1; margin-bottom:8px;'>이름 변경</div>", unsafe_allow_html=True)
-        new_name_val = st.text_input("새 사이클 이름", value=project_data["name"], label_visibility="collapsed")
-        if st.button("💾 이름 저장", use_container_width=True):
-            if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
-                state["projects"][active_id]["name"] = new_name_val.strip()
-                db.update_state(state, sha)
-                st.rerun()
-        st.markdown("---")
-        if st.button("🗑️ 사이클 삭제", key="del_in_detail", use_container_width=True):
-            del state["projects"][active_id]
-            rem = list(state["projects"].keys())
-            state["active_project_id"] = rem[0] if rem else None
+if st.button("← 목록", key="back_btn"):
+    st.session_state.view_mode = "LIST"
+    st.rerun()
+
+dash_tab, set_tab = st.tabs(["📊 대시보드", "⚙️ 사이클 설정"])
+
+with set_tab:
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 📝 사이클 이름 변경")
+    new_name_val = st.text_input("새 사이클 이름", value=project_data["name"])
+    if st.button("💾 이름 저장", type="primary"):
+        if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
+            state["projects"][active_id]["name"] = new_name_val.strip()
             db.update_state(state, sha)
-            st.session_state.view_mode = "CREATE" if not rem else "LIST"
             st.rerun()
-
-# 시세 및 잔고 API 조회
-with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 로딩 중..."):
-    try:
-        current_price = api.get_current_price(target_etf)
-    except Exception as e:
-        current_price = 0.0
-        
-    try:
-        holdings, usd_cash, krw_cash, account_summary = api.get_balance()
-        target_holding = None
-        for hold in holdings:
-            if hold.get("pdno") == target_etf or hold.get("pd_no") == target_etf:
-                target_holding = hold
-                break
-        actual_shares = float(target_holding.get("allo_qty", target_holding.get("ccld_qty", 0.0))) if target_holding else 0.0
-        actual_avg_price = float(target_holding.get("pchs_avg_pric", 0.0)) if target_holding else 0.0
-    except Exception as e:
-        actual_shares = 0.0
-        actual_avg_price = 0.0
-        usd_cash = 0.0
-        krw_cash = 0.0
-        holdings = []
-
-db_shares = float(project_data.get("total_shares", 0.0))
-db_avg_price = float(project_data.get("avg_price", 0.0))
-
-turn_cnt = int(project_data.get('turn', 0))
-splits_cnt = int(project_data.get('splits', 40))
-prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
-
-display_curr = current_price if current_price > 0 else db_avg_price
-if db_avg_price > 0 and display_curr > 0:
-    detail_pnl_pct = ((display_curr - db_avg_price) / db_avg_price) * 100
-    detail_pnl_html = f'<span class="pnl-pill-green">+{detail_pnl_pct:.2f}%</span>' if detail_pnl_pct >= 0 else f'<span class="pnl-pill-red">{detail_pnl_pct:.2f}%</span>'
-else:
-    detail_pnl_html = '<span style="color:#64748b; font-size:0.85rem; font-weight:700;">0.00%</span>'
-
-detail_card_html = f"""<div class="pro-card">
-<div class="pro-card-header">
-<div>
-<span class="ticker-badge">{target_etf} 대시보드</span>
-<span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
-</div>
-<span class="status-badge-active">진행중</span>
-</div>
-
-<div class="pro-metrics-grid">
-<div>
-<div class="metric-label">현재가</div>
-<div class="metric-value">${display_curr:.2f}</div>
-</div>
-<div>
-<div class="metric-label">평균매수가</div>
-<div class="metric-value">${db_avg_price:.2f}</div>
-</div>
-<div>
-<div class="metric-label">실시간손익</div>
-<div>{detail_pnl_html}</div>
-</div>
-<div>
-<div class="metric-label">보유수량</div>
-<div class="metric-value">{db_shares:g}주</div>
-</div>
-</div>
-
-<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#94a3b8;">
-<span>회차 진행률 ({turn_cnt} / {splits_cnt}회)</span>
-<span style="color:#ffffff;">{prog_pct}% 완료</span>
-</div>
-<div class="roop-progress-bg">
-<div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
-</div>
-</div>"""
-st.markdown(detail_card_html, unsafe_allow_html=True)
-
-
-# V4.0 주문 계산
-turn = int(project_data.get("turn", 0))
-splits = int(project_data.get("splits", 40))
-total_budget = float(project_data.get("total_budget", 10000.0))
-total_spent = float(project_data.get("total_spent", 0.0))
-
-if turn >= splits:
-    daily_buy_budget = 0.0
-else:
-    remaining_budget = total_budget - total_spent
-    daily_buy_budget = remaining_budget / (splits - turn)
-
-buy1_price = db_avg_price if db_avg_price > 0 else current_price
-buy1_qty = math.floor((daily_buy_budget * 0.5) / buy1_price) if buy1_price > 0 else 0
-if buy1_qty == 0 and daily_buy_budget > 0 and buy1_price > 0:
-    buy1_qty = 1
-
-buy2_price = current_price * 1.10
-buy2_qty = math.floor((daily_buy_budget * 0.5) / buy2_price) if buy2_price > 0 else 0
-if buy2_qty == 0 and daily_buy_budget > 0 and buy2_price > 0:
-    buy2_qty = 1
-
-sell_price = db_avg_price * 1.10
-sell_qty = db_shares
-
-# 오늘의 주문 2열 카드
-st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">오늘의 주문</div>', unsafe_allow_html=True)
-
-ord_col1, ord_col2 = st.columns(2)
-
-with ord_col1:
-    buy_html = f"""<div class="buy-box">
-<div class="box-title-buy">매수 · LOC 2분할</div>
-<div class="order-row">
-<div>
-<span class="price-bold">${buy1_price:.2f}</span>
-<span class="qty-text"> × {buy1_qty}주</span>
-</div>
-<span class="tag-red">평단</span>
-</div>
-<div class="order-row">
-<div>
-<span class="price-bold">${buy2_price:.2f}</span>
-<span class="qty-text"> × {buy2_qty}주</span>
-</div>
-<span class="tag-red">고가</span>
-</div>
-</div>"""
-    st.markdown(buy_html, unsafe_allow_html=True)
-
-with ord_col2:
-    sell_html = f"""<div class="sell-box">
-<div class="box-title-sell">매도 · LOC / 지정가</div>
-<div class="order-row">
-<div>
-<span class="price-bold">${sell_price:.2f}</span>
-<span class="qty-text"> × {sell_qty:g}주</span>
-</div>
-<span class="tag-purple">+10% 익절</span>
-</div>
-</div>"""
-    st.markdown(sell_html, unsafe_allow_html=True)
-
-# 오늘의 주문 전송 섹션
-
-approve_buy1 = True if buy1_qty > 0 else False
-approve_buy2 = True if buy2_qty > 0 else False
-approve_sell = True if sell_qty > 0 else False
-
-if st.button("오늘의 주문 전송", type="primary", use_container_width=True):
-    # 페이지 로드 시 호출된 잔고조회 API 등과 주문 전송 API가 겹쳐 
-    # '초당 거래건수 초과(TPS)' 에러가 발생하는 것을 방지하기 위해 잠시 대기
-    time.sleep(1.0)
     
-    success_orders = 0
-    fail_orders = 0
-    messages = []
-    
-    order_data_log = [
-        {"구분": "매수 1순위 (평단 LOC)", "수량": buy1_qty, "단가": buy1_price},
-        {"구분": "매수 2순위 (고가 LOC)", "수량": buy2_qty, "단가": buy2_price}
-    ]
-    if sell_qty > 0:
-        order_data_log.append({"구분": "익절 매도", "수량": sell_qty, "단가": sell_price})
-        
-    if approve_buy1 and buy1_qty > 0:
-        success, res = api.place_order(target_etf, buy1_qty, buy1_price, order_type="34")
-        if success:
-            success_orders += 1
-            messages.append(f"✅ 매수 1순위(평단 LOC) 성공: {buy1_qty}주 @ ${buy1_price:.2f}")
-        else:
-            fail_orders += 1
-            messages.append(f"❌ 매수 1순위: {res}")
-        time.sleep(1.0)
-            
-    if approve_buy2 and buy2_qty > 0:
-        success, res = api.place_order(target_etf, buy2_qty, buy2_price, order_type="34")
-        if success:
-            success_orders += 1
-            messages.append(f"✅ 매수 2순위(고가 LOC) 성공: {buy2_qty}주 @ ${buy2_price:.2f}")
-        else:
-            fail_orders += 1
-            messages.append(f"❌ 매수 2순위: {res}")
-        time.sleep(1.0)
-            
-    if approve_sell and sell_qty > 0:
-        success, res = api.place_order(target_etf, -sell_qty, sell_price, order_type="00")
-        if success:
-            success_orders += 1
-            messages.append(f"✅ 익절 매도 성공: {sell_qty}주 @ ${sell_price:.2f}")
-        else:
-            fail_orders += 1
-            messages.append(f"❌ 익절 매도: {res}")
-
-    for msg in messages:
-        st.write(msg)
-        
-    if success_orders > 0 and fail_orders == 0:
-        st.success(f"🎉 모든 주문이 성공적으로 전송되었습니다!")
-        if approve_buy1 or approve_buy2:
-            project_data["turn"] = turn + 1
-            
-        log_entry = {
-            "date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "env": api.env,
-            "target": target_etf,
-            "turn_before": turn,
-            "turn_after": project_data["turn"],
-            "orders": order_data_log
-        }
-        project_data.setdefault("history", []).append(log_entry)
-        state["projects"][active_id] = project_data
-        
-        db_success, new_sha = db.update_state(state, sha)
-        if db_success:
-            st.success("💾 깃허브 DB 업데이트 완료!")
-            time.sleep(2)
-            st.rerun()
-
-# 계좌 잔고 및 DB 동기화 센터
-with st.expander("🏦 계좌 잔고 및 실제 주식 수량 DB 동기화"):
-    sync_html = f'''
-    <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 15px;">
-        <div class="summary-item">
-            <div class="summary-label">💵 사용 가능 예수금</div>
-            <div class="summary-val" style="font-size:1.0rem;">${usd_cash:,.2f}</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-label">📦 실제 {target_etf} 수량</div>
-            <div class="summary-val" style="font-size:1.0rem;">{actual_shares} 주</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-label">🎯 실제 {target_etf} 평단</div>
-            <div class="summary-val" style="font-size:1.0rem;">${actual_avg_price:.2f}</div>
-        </div>
-    </div>
-    '''
-    st.markdown(sync_html, unsafe_allow_html=True)
-    
-    if st.button(f"🛠️ DB를 실제 계좌 기준({target_etf})으로 동기화"):
-        project_data["total_shares"] = actual_shares
-        project_data["avg_price"] = actual_avg_price
-        project_data["total_spent"] = actual_shares * actual_avg_price
-        if actual_shares == 0:
-            project_data["turn"] = 0
-            
-        state["projects"][active_id] = project_data
+    st.markdown("---")
+    st.markdown("### 🗑️ 사이클 삭제")
+    st.markdown("<div style='color:#94a3b8; font-size:0.9rem; margin-bottom:12px;'>이 사이클의 모든 데이터를 영구적으로 삭제합니다. 복구할 수 없습니다.</div>", unsafe_allow_html=True)
+    if st.button("🗑️ 삭제 실행", key="del_in_detail"):
+        del state["projects"][active_id]
+        rem = list(state["projects"].keys())
+        state["active_project_id"] = rem[0] if rem else None
         db.update_state(state, sha)
-        st.success("동기화 완료!")
+        st.session_state.view_mode = "CREATE" if not rem else "LIST"
         st.rerun()
+
+with dash_tab:
+    # 시세 및 잔고 API 조회
+    with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 로딩 중..."):
+        try:
+            current_price = api.get_current_price(target_etf)
+        except Exception as e:
+            current_price = 0.0
+        
+        try:
+            holdings, usd_cash, krw_cash, account_summary = api.get_balance()
+            target_holding = None
+            for hold in holdings:
+                if hold.get("pdno") == target_etf or hold.get("pd_no") == target_etf:
+                    target_holding = hold
+                    break
+            actual_shares = float(target_holding.get("allo_qty", target_holding.get("ccld_qty", 0.0))) if target_holding else 0.0
+            actual_avg_price = float(target_holding.get("pchs_avg_pric", 0.0)) if target_holding else 0.0
+        except Exception as e:
+            actual_shares = 0.0
+            actual_avg_price = 0.0
+            usd_cash = 0.0
+            krw_cash = 0.0
+            holdings = []
+
+    db_shares = float(project_data.get("total_shares", 0.0))
+    db_avg_price = float(project_data.get("avg_price", 0.0))
+
+    turn_cnt = int(project_data.get('turn', 0))
+    splits_cnt = int(project_data.get('splits', 40))
+    prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
+
+    display_curr = current_price if current_price > 0 else db_avg_price
+    if db_avg_price > 0 and display_curr > 0:
+        detail_pnl_pct = ((display_curr - db_avg_price) / db_avg_price) * 100
+        detail_pnl_html = f'<span class="pnl-pill-green">+{detail_pnl_pct:.2f}%</span>' if detail_pnl_pct >= 0 else f'<span class="pnl-pill-red">{detail_pnl_pct:.2f}%</span>'
+    else:
+        detail_pnl_html = '<span style="color:#64748b; font-size:0.85rem; font-weight:700;">0.00%</span>'
+
+    detail_card_html = f"""<div class="pro-card">
+    <div class="pro-card-header">
+    <div>
+    <span class="ticker-badge">{target_etf} 대시보드</span>
+    <span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
+    </div>
+    <span class="status-badge-active">진행중</span>
+    </div>
+
+    <div class="pro-metrics-grid">
+    <div>
+    <div class="metric-label">현재가</div>
+    <div class="metric-value">${display_curr:.2f}</div>
+    </div>
+    <div>
+    <div class="metric-label">평균매수가</div>
+    <div class="metric-value">${db_avg_price:.2f}</div>
+    </div>
+    <div>
+    <div class="metric-label">실시간손익</div>
+    <div>{detail_pnl_html}</div>
+    </div>
+    <div>
+    <div class="metric-label">보유수량</div>
+    <div class="metric-value">{db_shares:g}주</div>
+    </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#94a3b8;">
+    <span>회차 진행률 ({turn_cnt} / {splits_cnt}회)</span>
+    <span style="color:#ffffff;">{prog_pct}% 완료</span>
+    </div>
+    <div class="roop-progress-bg">
+    <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
+    </div>
+    </div>"""
+    st.markdown(detail_card_html, unsafe_allow_html=True)
+
+
+    # V4.0 주문 계산
+    turn = int(project_data.get("turn", 0))
+    splits = int(project_data.get("splits", 40))
+    total_budget = float(project_data.get("total_budget", 10000.0))
+    total_spent = float(project_data.get("total_spent", 0.0))
+
+    if turn >= splits:
+        daily_buy_budget = 0.0
+    else:
+        remaining_budget = total_budget - total_spent
+        daily_buy_budget = remaining_budget / (splits - turn)
+
+    buy1_price = db_avg_price if db_avg_price > 0 else current_price
+    buy1_qty = math.floor((daily_buy_budget * 0.5) / buy1_price) if buy1_price > 0 else 0
+    if buy1_qty == 0 and daily_buy_budget > 0 and buy1_price > 0:
+        buy1_qty = 1
+
+    buy2_price = current_price * 1.10
+    buy2_qty = math.floor((daily_buy_budget * 0.5) / buy2_price) if buy2_price > 0 else 0
+    if buy2_qty == 0 and daily_buy_budget > 0 and buy2_price > 0:
+        buy2_qty = 1
+
+    sell_price = db_avg_price * 1.10
+    sell_qty = db_shares
+
+    # 오늘의 주문 2열 카드
+    st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">오늘의 주문</div>', unsafe_allow_html=True)
+
+    ord_col1, ord_col2 = st.columns(2)
+
+    with ord_col1:
+        buy_html = f"""<div class="buy-box">
+    <div class="box-title-buy">매수 · LOC 2분할</div>
+    <div class="order-row">
+    <div>
+    <span class="price-bold">${buy1_price:.2f}</span>
+    <span class="qty-text"> × {buy1_qty}주</span>
+    </div>
+    <span class="tag-red">평단</span>
+    </div>
+    <div class="order-row">
+    <div>
+    <span class="price-bold">${buy2_price:.2f}</span>
+    <span class="qty-text"> × {buy2_qty}주</span>
+    </div>
+    <span class="tag-red">고가</span>
+    </div>
+    </div>"""
+        st.markdown(buy_html, unsafe_allow_html=True)
+
+    with ord_col2:
+        sell_html = f"""<div class="sell-box">
+    <div class="box-title-sell">매도 · LOC / 지정가</div>
+    <div class="order-row">
+    <div>
+    <span class="price-bold">${sell_price:.2f}</span>
+    <span class="qty-text"> × {sell_qty:g}주</span>
+    </div>
+    <span class="tag-purple">+10% 익절</span>
+    </div>
+    </div>"""
+        st.markdown(sell_html, unsafe_allow_html=True)
+
+    # 오늘의 주문 전송 섹션
+
+    approve_buy1 = True if buy1_qty > 0 else False
+    approve_buy2 = True if buy2_qty > 0 else False
+    approve_sell = True if sell_qty > 0 else False
+
+    if st.button("오늘의 주문 전송", type="primary", use_container_width=True):
+        # 페이지 로드 시 호출된 잔고조회 API 등과 주문 전송 API가 겹쳐 
+        # '초당 거래건수 초과(TPS)' 에러가 발생하는 것을 방지하기 위해 잠시 대기
+        time.sleep(1.0)
+    
+        success_orders = 0
+        fail_orders = 0
+        messages = []
+    
+        order_data_log = [
+            {"구분": "매수 1순위 (평단 LOC)", "수량": buy1_qty, "단가": buy1_price},
+            {"구분": "매수 2순위 (고가 LOC)", "수량": buy2_qty, "단가": buy2_price}
+        ]
+        if sell_qty > 0:
+            order_data_log.append({"구분": "익절 매도", "수량": sell_qty, "단가": sell_price})
+        
+        if approve_buy1 and buy1_qty > 0:
+            success, res = api.place_order(target_etf, buy1_qty, buy1_price, order_type="34")
+            if success:
+                success_orders += 1
+                messages.append(f"✅ 매수 1순위(평단 LOC) 성공: {buy1_qty}주 @ ${buy1_price:.2f}")
+            else:
+                fail_orders += 1
+                messages.append(f"❌ 매수 1순위: {res}")
+            time.sleep(1.0)
+            
+        if approve_buy2 and buy2_qty > 0:
+            success, res = api.place_order(target_etf, buy2_qty, buy2_price, order_type="34")
+            if success:
+                success_orders += 1
+                messages.append(f"✅ 매수 2순위(고가 LOC) 성공: {buy2_qty}주 @ ${buy2_price:.2f}")
+            else:
+                fail_orders += 1
+                messages.append(f"❌ 매수 2순위: {res}")
+            time.sleep(1.0)
+            
+        if approve_sell and sell_qty > 0:
+            success, res = api.place_order(target_etf, -sell_qty, sell_price, order_type="00")
+            if success:
+                success_orders += 1
+                messages.append(f"✅ 익절 매도 성공: {sell_qty}주 @ ${sell_price:.2f}")
+            else:
+                fail_orders += 1
+                messages.append(f"❌ 익절 매도: {res}")
+
+        for msg in messages:
+            st.write(msg)
+        
+        if success_orders > 0 and fail_orders == 0:
+            st.success(f"🎉 모든 주문이 성공적으로 전송되었습니다!")
+            if approve_buy1 or approve_buy2:
+                project_data["turn"] = turn + 1
+            
+            log_entry = {
+                "date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "env": api.env,
+                "target": target_etf,
+                "turn_before": turn,
+                "turn_after": project_data["turn"],
+                "orders": order_data_log
+            }
+            project_data.setdefault("history", []).append(log_entry)
+            state["projects"][active_id] = project_data
+        
+            db_success, new_sha = db.update_state(state, sha)
+            if db_success:
+                st.success("💾 깃허브 DB 업데이트 완료!")
+                time.sleep(2)
+                st.rerun()
+
+    # 계좌 잔고 및 DB 동기화 센터
+    with st.expander("🏦 계좌 잔고 및 실제 주식 수량 DB 동기화"):
+        sync_html = f'''
+        <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 15px;">
+            <div class="summary-item">
+                <div class="summary-label">💵 사용 가능 예수금</div>
+                <div class="summary-val" style="font-size:1.0rem;">${usd_cash:,.2f}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">📦 실제 {target_etf} 수량</div>
+                <div class="summary-val" style="font-size:1.0rem;">{actual_shares} 주</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">🎯 실제 {target_etf} 평단</div>
+                <div class="summary-val" style="font-size:1.0rem;">${actual_avg_price:.2f}</div>
+            </div>
+        </div>
+        '''
+        st.markdown(sync_html, unsafe_allow_html=True)
+    
+        if st.button(f"🛠️ DB를 실제 계좌 기준({target_etf})으로 동기화"):
+            project_data["total_shares"] = actual_shares
+            project_data["avg_price"] = actual_avg_price
+            project_data["total_spent"] = actual_shares * actual_avg_price
+            if actual_shares == 0:
+                project_data["turn"] = 0
+            
+            state["projects"][active_id] = project_data
+            db.update_state(state, sha)
+            st.success("동기화 완료!")
+            st.rerun()
 
 
 
