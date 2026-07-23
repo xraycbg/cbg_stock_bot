@@ -1020,7 +1020,7 @@ with dash_tab:
     st.markdown("### 🏦 실 계좌 정보")
     with st.container():
         sync_html = f'''
-        <div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 15px;">
+        <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
             <div class="summary-item">
                 <div class="summary-label">외화 예수금</div>
                 <div class="summary-val" style="font-size:1.0rem;">${usd_cash:,.2f}</div>
@@ -1030,12 +1030,12 @@ with dash_tab:
                 <div class="summary-val" style="font-size:1.0rem;">{krw_cash:,.0f} 원</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">{target_etf} 수량</div>
-                <div class="summary-val" style="font-size:1.0rem;">{actual_shares} 주</div>
-            </div>
-            <div class="summary-item">
                 <div class="summary-label">{target_etf} 평단</div>
                 <div class="summary-val" style="font-size:1.0rem;">${actual_avg_price:.2f}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">{target_etf} 수량</div>
+                <div class="summary-val" style="font-size:1.0rem;">{actual_shares} 주</div>
             </div>
         </div>
         '''
