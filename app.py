@@ -420,7 +420,19 @@ def normalize_state(s):
 state = normalize_state(raw_state)
 
 # 🔒 보안 비밀번호 인증 (세션 기반)
-env_pwd = os.getenv("APP_PASSWORD")
+def get_env_pwd():
+    try:
+        env_file = Path(__file__).parent / ".env"
+        if env_file.exists():
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip().startswith("APP_PASSWORD="):
+                        return line.split("=", 1)[1].strip()
+    except Exception:
+        pass
+    return os.getenv("APP_PASSWORD")
+
+env_pwd = get_env_pwd()
 if env_pwd and state.get("app_password") != env_pwd:
     state["app_password"] = env_pwd
     db.update_state(state, sha)
@@ -436,11 +448,11 @@ if not st.session_state.authenticated:
         password_input = st.text_input("접속 비밀번호 (PIN)", type="password", placeholder="비밀번호 입력")
         submit_btn = st.form_submit_button("🔓 로그인", type="primary", use_container_width=True)
         if submit_btn:
-            if password_input == APP_PASSWORD:
+            if password_input.strip() == str(APP_PASSWORD).strip():
                 st.session_state.authenticated = True
                 st.rerun()
             else:
-                st.error("❌ 비밀번호가 올바르지 않습니다.")
+                st.error(f"❌ 비밀번호가 올바르지 않습니다. (디버그: env_pwd='{env_pwd}', APP_PASSWORD='{APP_PASSWORD}')")
     st.stop()
 
 # 뷰 모드 관리
