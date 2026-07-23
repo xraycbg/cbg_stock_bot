@@ -687,9 +687,28 @@ if not active_id or active_id not in projects_dict:
 project_data = projects_dict[active_id]
 target_etf = project_data["target_etf"]
 
-if st.button("← 내 사이클 목록으로 돌아가기", key="back_btn"):
-    st.session_state.view_mode = "LIST"
-    st.rerun()
+b_col1, b_col2 = st.columns([5, 1])
+with b_col1:
+    if st.button("← 내 사이클 목록으로 돌아가기", key="back_btn"):
+        st.session_state.view_mode = "LIST"
+        st.rerun()
+with b_col2:
+    with st.popover("⚙️ 설정", use_container_width=True):
+        st.markdown("<div style='font-size:0.9rem; font-weight:700; color:#cbd5e1; margin-bottom:8px;'>이름 변경</div>", unsafe_allow_html=True)
+        new_name_val = st.text_input("새 사이클 이름", value=project_data["name"], label_visibility="collapsed")
+        if st.button("💾 이름 저장", type="primary", use_container_width=True):
+            if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
+                state["projects"][active_id]["name"] = new_name_val.strip()
+                db.update_state(state, sha)
+                st.rerun()
+        st.markdown("---")
+        if st.button("🗑️ 사이클 삭제", key="del_in_detail", use_container_width=True):
+            del state["projects"][active_id]
+            rem = list(state["projects"].keys())
+            state["active_project_id"] = rem[0] if rem else None
+            db.update_state(state, sha)
+            st.session_state.view_mode = "CREATE" if not rem else "LIST"
+            st.rerun()
 
 # 시세 및 잔고 API 조회
 with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 로딩 중..."):
@@ -766,29 +785,6 @@ detail_card_html = f"""<div class="pro-card">
 </div>"""
 st.markdown(detail_card_html, unsafe_allow_html=True)
 
-# 세부화면 내부 프로젝트 관리 메뉴
-with st.expander(f"⚙️ [{project_data['name']}] 사이클 설정 및 관리"):
-    m_col1, m_col2 = st.columns([2, 1.2])
-    with m_col1:
-        with st.form("detail_rename_form"):
-            new_name_val = st.text_input("새 사이클 이름", value=project_data["name"])
-            if st.form_submit_button("💾 이름 저장", type="primary"):
-                if new_name_val.strip():
-                    state["projects"][active_id]["name"] = new_name_val.strip()
-                    _, sha = db.update_state(state, sha)
-                    st.success("이름이 변경되었습니다!")
-                    st.rerun()
-    with m_col2:
-        st.write("")
-        st.write("")
-        if st.button("🗑️ 사이클 삭제", key="del_in_detail", use_container_width=True):
-            del state["projects"][active_id]
-            rem = list(state["projects"].keys())
-            state["active_project_id"] = rem[0] if rem else None
-            _, sha = db.update_state(state, sha)
-            st.session_state.view_mode = "CREATE" if not rem else "LIST"
-            st.success("삭제되었습니다.")
-            st.rerun()
 
 # V4.0 주문 계산
 turn = int(project_data.get("turn", 0))
