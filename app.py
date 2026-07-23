@@ -469,7 +469,7 @@ with st.sidebar:
         st.rerun()
 
 # ==========================================
-# 🔝 상단 Header Bar (Pro 타이틀 & + 새 사이클)
+# 🔝 상단 Header Bar (Pro 타이틀 & + 새 프로젝트)
 # ==========================================
 hdr_col1, hdr_col2 = st.columns([2.5, 2.5])
 
@@ -483,7 +483,7 @@ with hdr_col1:
     ''', unsafe_allow_html=True)
 
 with hdr_col2:
-    if st.button("➕ 새 사이클", key="top_new_cycle_btn", use_container_width=True):
+    if st.button("➕ 새 프로젝트", key="top_new_cycle_btn", use_container_width=True):
         st.session_state.view_mode = "CREATE"
         st.rerun()
 
@@ -521,10 +521,10 @@ summary_html = f'''
 st.markdown(summary_html, unsafe_allow_html=True)
 
 # ==========================================
-# ➕ 새 사이클 생성 화면
+# ➕ 새 프로젝트 생성 화면
 # ==========================================
 if st.session_state.view_mode == "CREATE" or not projects_dict:
-    st.markdown("### 🚀 새 사이클 (프로젝트) 생성")
+    st.markdown("### 🚀 새 프로젝트 생성")
     
     new_p_ticker = st.selectbox("🎯 매매 종목 선택", ["SOXL", "TQQQ"], key="create_p_ticker")
     existing_count = sum(1 for p in projects_dict.values() if p.get("target_etf") == new_p_ticker)
@@ -535,7 +535,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
         new_p_budget = st.number_input("💰 총 투자 예산 ($USD)", min_value=100.0, value=10000.0, step=500.0)
         new_p_splits = st.number_input("⏳ 분할 회차 (Splits)", min_value=10, max_value=60, value=40)
         
-        create_submit = st.form_submit_button("✨ 새 사이클 생성 및 매매 시작", type="primary", use_container_width=True)
+        create_submit = st.form_submit_button("✨ 새 프로젝트 생성 및 매매 시작", type="primary", use_container_width=True)
         
         if create_submit:
             final_name = new_p_name.strip() if new_p_name.strip() else recommended_name
@@ -559,7 +559,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
             state["active_project_id"] = new_id
             _, sha = db.update_state(state, sha)
             st.session_state.view_mode = "DETAIL"
-            st.success(f"🎉 [{final_name}] 사이클이 생성되었습니다!")
+            st.success(f"🎉 [{final_name}] 프로젝트가 생성되었습니다!")
             st.rerun()
 
     if projects_dict:
@@ -696,7 +696,7 @@ with set_tab:
     st.markdown("<br>", unsafe_allow_html=True)
     rn_col1, rn_col2 = st.columns([4, 1])
     with rn_col1:
-        new_name_val = st.text_input("새 사이클 이름", value=project_data["name"], label_visibility="collapsed")
+        new_name_val = st.text_input("새 프로젝트 이름", value=project_data["name"], label_visibility="collapsed")
     with rn_col2:
         if st.button("💾 저장", use_container_width=True):
             if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
