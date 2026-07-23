@@ -487,6 +487,49 @@ with st.sidebar:
     if st.button("🔄 GitHub DB 다시 불러오기"):
         st.cache_data.clear()
         st.rerun()
+        
+    st.markdown("---")
+    st.markdown("### 📲 텔레그램 연동")
+    if st.button("🚀 텔레그램 테스트 발송", use_container_width=True):
+        import requests
+        token = os.getenv("TELEGRAM_BOT_TOKEN")
+        chat_id = os.getenv("TELEGRAM_CHAT_ID")
+        
+        if not token or not chat_id:
+            st.error("텔레그램 설정이 필요합니다. (.env 확인)")
+        else:
+            try:
+                active_id = state.get("active_project_id")
+                project = state.get("projects", {}).get(active_id, {})
+                proj_name = project.get("name", "프로젝트 없음")
+                env_str = "🚀 실전투자" if api.env == "real" else "🧪 모의투자"
+                target = project.get("target_etf", "N/A")
+                
+                try:
+                    _, usd, krw, _ = api.get_balance()
+                except Exception:
+                    usd, krw = 0.0, 0.0
+                
+                msg = f"""🤖 *무한매수 4.0 Pro 시스템 알림*
+
+🔹 *실행 환경*: {env_str}
+🔹 *진행 프로젝트*: {proj_name}
+🔹 *타겟 종목*: {target}
+🔹 *외화 예수금*: ${usd:,.2f}
+🔹 *원화 예수금*: {krw:,.0f} 원
+
+정상적으로 텔레그램 연동이 완료되었습니다! 🎉"""
+                
+                url = f"https://api.telegram.org/bot{token}/sendMessage"
+                payload = {"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"}
+                resp = requests.post(url, json=payload)
+                
+                if resp.status_code == 200:
+                    st.success("✅ 텔레그램으로 테스트 메시지를 성공적으로 발송했습니다!")
+                else:
+                    st.error(f"❌ 발송 실패: {resp.text}")
+            except Exception as e:
+                st.error(f"❌ 발송 에러: {e}")
 
 # ==========================================
 # 🔝 상단 Header Bar (Pro 타이틀 & + 새 프로젝트)
