@@ -622,6 +622,9 @@ if st.session_state.view_mode == "LIST":
         if card_b2_qty == 0 and daily_budget > 0 and card_b2_price > 0:
             card_b2_qty = 1
 
+        buy_count = (1 if card_b1_qty > 0 else 0) + (1 if card_b2_qty > 0 else 0)
+        sell_count = 1 if db_shares > 0 else 0
+
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
         card_html = f"""<div class="pro-card list-card-touch">
@@ -661,7 +664,7 @@ if st.session_state.view_mode == "LIST":
 </div>
 
 <div class="guide-box">
-<div>🔴 <b>오늘의 주문</b> : 평단 ${card_b1_price:.2f} ({card_b1_qty}주) | 고가 ${card_b2_price:.2f} ({card_b2_qty}주)</div>
+<div>🔴 <b>오늘의 주문</b> : 매수 {buy_count}건 | 매도 {sell_count}건</div>
 <div style="color:#818cf8; font-weight:800;">상세보기 →</div>
 </div>
 </div>"""
