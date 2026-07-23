@@ -554,10 +554,10 @@ with st.sidebar:
 hdr_col1, hdr_col2 = st.columns([2.5, 2.5])
 
 with hdr_col1:
-    env_badge = "🧪 모의투자" if api.env == "mock" else "🚀 실전투자"
+    env_badge = "모의투자" if api.env == "mock" else "실전투자"
     st.markdown(f'''
     <div>
-        <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">📈 무한매수 4.0 Pro</span>
+        <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">무한매수 4.0 Pro</span>
         <span style="font-size:0.75rem; font-weight:800; background:rgba(99,102,241,0.25); color:#a5b4fc; padding:2px 8px; border-radius:12px; margin-left:6px;">{env_badge}</span>
     </div>
     ''', unsafe_allow_html=True)
@@ -588,11 +588,11 @@ summary_html = f'''
 <div class="summary-card">
     <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr);">
         <div class="summary-item">
-            <div class="summary-label">💵 외화 예수금</div>
+            <div class="summary-label">외화 예수금</div>
             <div class="summary-val">${usd_cash_val:,.2f}</div>
         </div>
         <div class="summary-item">
-            <div class="summary-label">₩ 원화 예수금</div>
+            <div class="summary-label">원화 예수금</div>
             <div class="summary-val">{krw_cash_val:,.0f} 원</div>
         </div>
     </div>
@@ -773,11 +773,11 @@ if not active_id or active_id not in projects_dict:
 project_data = projects_dict[active_id]
 target_etf = project_data["target_etf"]
 
-if st.button("← 목록", key="back_btn"):
+if st.button("목록 보기", key="back_btn"):
     st.session_state.view_mode = "LIST"
     st.rerun()
 
-dash_tab, set_tab = st.tabs(["📊 대시보드", "⚙️ 설정"])
+dash_tab, set_tab = st.tabs(["대시보드", "설정"])
 
 with set_tab:
     st.markdown("<br>", unsafe_allow_html=True)
