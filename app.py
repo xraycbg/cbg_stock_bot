@@ -573,11 +573,22 @@ projects_dict = state.get("projects", {})
 # ==========================================
 # 📊 상단 스마트 계좌 브리핑 (Executive Summary)
 # ==========================================
+if "token_retry_cnt" not in st.session_state:
+    st.session_state.token_retry_cnt = 0
+
 try:
     _, usd_cash_val, krw_cash_val, _ = get_cached_balance(api)
+    st.session_state.token_retry_cnt = 0  # 성공 시 리셋
 except Exception:
-    usd_cash_val = 0.0
-    krw_cash_val = 0.0
+    if st.session_state.token_retry_cnt < 2:
+        st.session_state.token_retry_cnt += 1
+        st.warning(f"🔄 증권사 보안 토큰을 발급 중입니다... 3초 후 자동으로 새로고침됩니다. (자동 재시도 {st.session_state.token_retry_cnt}/2)")
+        time.sleep(3)
+        st.rerun()
+    else:
+        usd_cash_val = 0.0
+        krw_cash_val = 0.0
+        st.error("⚠️ 증권사 API 접속이 지연되고 있습니다. 나중에 수동으로 새로고침(Cmd+R)해주세요.")
 
 active_proj_count = len(projects_dict)
 total_allocated_budget = sum(float(p.get("total_budget", 10000.0)) for p in projects_dict.values())
