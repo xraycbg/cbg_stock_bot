@@ -478,14 +478,32 @@ with st.sidebar:
     env_option = st.selectbox(
         "실행 환경 선택",
         ["모의투자 (Mock)", "실전투자 (Real)"],
-        index=0 if os.getenv("KIS_ENVIRONMENT", "mock") == "mock" else 1
+        index=0 if api.env == "mock" else 1
     )
     new_env = "real" if "Real" in env_option else "mock"
     if api.env != new_env:
+        # .env 파일에 영구 반영
+        env_file = ".env"
+        if os.path.exists(env_file):
+            with open(env_file, "r") as f:
+                lines = f.readlines()
+            with open(env_file, "w") as f:
+                found = False
+                for line in lines:
+                    if line.startswith("KIS_ENVIRONMENT="):
+                        f.write(f"KIS_ENVIRONMENT={new_env}\n")
+                        found = True
+                    else:
+                        f.write(line)
+                if not found:
+                    f.write(f"KIS_ENVIRONMENT={new_env}\n")
+        
+        # 메모리 업데이트 및 강제 새로고침
         os.environ["KIS_ENVIRONMENT"] = new_env
         st.session_state.kis_api = KISApi()
-        api = st.session_state.kis_api
-        st.success(f"환경이 {env_option}로 변경되었습니다.")
+        st.toast(f"✅ 환경이 {env_option}로 영구 변경되었습니다!")
+        time.sleep(0.5)
+        st.rerun()
         
     st.markdown("---")
     st.markdown("### 💾 GitHub DB 상태")
