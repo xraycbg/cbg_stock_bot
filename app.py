@@ -134,8 +134,8 @@ st.markdown("""
 
     .pro-metrics-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
         background: rgba(15, 23, 42, 0.65);
         border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 14px;
@@ -722,15 +722,15 @@ if st.session_state.view_mode == "LIST":
 <div class="metric-value">${display_curr:.2f}</div>
 </div>
 <div>
-<div class="metric-label">평균매수가</div>
-<div class="metric-value">${db_avg_price:.2f}</div>
-</div>
-<div>
-<div class="metric-label">손익률</div>
+<div class="metric-label">실시간손익</div>
 <div>{pnl_html}</div>
 </div>
 <div>
-<div class="metric-label">보유수량</div>
+<div class="metric-label">{ticker} 평단</div>
+<div class="metric-value">${db_avg_price:.2f}</div>
+</div>
+<div>
+<div class="metric-label">{ticker} 수량</div>
 <div class="metric-value">{db_shares:g}주</div>
 </div>
 </div>
@@ -853,15 +853,15 @@ with dash_tab:
 <div class="metric-value">${display_curr:.2f}</div>
 </div>
 <div>
-<div class="metric-label">평균매수가</div>
-<div class="metric-value">${db_avg_price:.2f}</div>
-</div>
-<div>
 <div class="metric-label">실시간손익</div>
 <div>{detail_pnl_html}</div>
 </div>
 <div>
-<div class="metric-label">보유수량</div>
+<div class="metric-label">{target_etf} 평단</div>
+<div class="metric-value">${db_avg_price:.2f}</div>
+</div>
+<div>
+<div class="metric-label">{target_etf} 수량</div>
 <div class="metric-value">{db_shares:g}주</div>
 </div>
 </div>
