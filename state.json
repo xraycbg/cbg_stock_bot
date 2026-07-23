@@ -28,8 +28,22 @@
       "status": "진행중",
       "created_at": "2026-07-23 03:06:05",
       "history": []
+    },
+    "proj_1784850558": {
+      "id": "proj_1784850558",
+      "name": "TQQQ 2차",
+      "target_etf": "TQQQ",
+      "total_budget": 1000.0,
+      "splits": 30,
+      "turn": 0,
+      "avg_price": 0.0,
+      "total_shares": 0.0,
+      "total_spent": 0.0,
+      "status": "진행중",
+      "created_at": "2026-07-23 23:49:18",
+      "history": []
     }
   },
   "app_password": "aaaa",
-  "active_project_id": "proj_1784772430"
+  "active_project_id": "proj_1784850558"
 }
