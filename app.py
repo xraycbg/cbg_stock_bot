@@ -682,9 +682,11 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
             st.rerun()
 
     if projects_dict:
-        if st.button("취소 및 목록으로 돌아가기"):
-            st.session_state.view_mode = "LIST"
-            st.rerun()
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("취소", use_container_width=True):
+                st.session_state.view_mode = "LIST"
+                st.rerun()
             
     st.stop()
 
