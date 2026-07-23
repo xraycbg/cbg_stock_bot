@@ -196,7 +196,6 @@ st.markdown("""
 
     .guide-box {
         background: rgba(30, 41, 59, 0.5);
-        border-left: 3px solid #ef4444;
         border-radius: 10px;
         padding: 8px 12px;
         font-size: 0.78rem;
@@ -748,7 +747,7 @@ if st.session_state.view_mode == "LIST":
 </div>
 
 <div class="guide-box">
-<div>🔴 <b>오늘의 주문</b> : 매수 {buy_count}건 | 매도 {sell_count}건</div>
+<div><b>오늘의 주문</b> : 매수 {buy_count}건 | 매도 {sell_count}건</div>
 <div style="color:#818cf8; font-weight:800;">상세보기 →</div>
 </div>
 </div>"""
@@ -1050,7 +1049,7 @@ with dash_tab:
         '''
         st.markdown(sync_html, unsafe_allow_html=True)
     
-        if st.button(f"🛠️ DB를 실제 계좌 기준({target_etf})으로 동기화", use_container_width=True):
+        if st.button(f"DB를 실제 계좌 기준({target_etf})으로 동기화", use_container_width=True):
             project_data["total_shares"] = actual_shares
             project_data["avg_price"] = actual_avg_price
             project_data["total_spent"] = actual_shares * actual_avg_price
