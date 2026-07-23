@@ -648,9 +648,10 @@ projects_dict = state.get("projects", {})
 # 📊 상단 스마트 계좌 브리핑 (Executive Summary)
 # ==========================================
 try:
-    _, usd_cash_val, _ = api.get_balance()
+    _, usd_cash_val, krw_cash_val, _ = api.get_balance()
 except Exception:
     usd_cash_val = 0.0
+    krw_cash_val = 0.0
 
 active_proj_count = len(projects_dict)
 total_allocated_budget = sum(float(p.get("total_budget", 10000.0)) for p in projects_dict.values())
@@ -658,10 +659,14 @@ total_spent_budget = sum(float(p.get("total_spent", 0.0)) for p in projects_dict
 
 summary_html = f'''
 <div class="summary-card">
-    <div class="summary-grid">
+    <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr);">
         <div class="summary-item">
             <div class="summary-label">💵 사용 가능 외화예수금</div>
             <div class="summary-val">${usd_cash_val:,.2f}</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">₩ 사용 가능 원화예수금</div>
+            <div class="summary-val">{krw_cash_val:,.0f} 원</div>
         </div>
         <div class="summary-item">
             <div class="summary-label">📊 운용 중인 사이클</div>
@@ -851,7 +856,7 @@ with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 �
         current_price = 0.0
         
     try:
-        holdings, usd_cash, account_summary = api.get_balance()
+        holdings, usd_cash, krw_cash, account_summary = api.get_balance()
         target_holding = None
         for hold in holdings:
             if hold.get("pdno") == target_etf or hold.get("pd_no") == target_etf:
@@ -863,6 +868,7 @@ with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 �
         actual_shares = 0.0
         actual_avg_price = 0.0
         usd_cash = 0.0
+        krw_cash = 0.0
         holdings = []
 
 db_shares = float(project_data.get("total_shares", 0.0))

@@ -184,7 +184,7 @@ class KISApi:
 
         """
         해외주식 잔고 및 예수금 정보를 조회합니다.
-        반환값: (보유 종목 리스트, 외화 예수금(달러), 요약 딕셔너리)
+        반환값: (보유 종목 리스트, 외화 예수금(달러), 원화 예수금(원), 요약 딕셔너리)
         """
         token = self.get_access_token()
         url = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-balance"
@@ -245,8 +245,35 @@ class KISApi:
                             usd_cash = fetched_cash
                 except Exception as e:
                     print(f"외화 예수금 조회 예외: {e}")
+                # 원화 예수금 별도 조회 API 호출 (국내주식 잔고 API 활용)
+                krw_cash = 0.0
+                try:
+                    krw_url = f"{self.base_url}/uapi/domestic-stock/v1/trading/inquire-psbl-order"
+                    tr_id_krw = "VTTC8908R" if self.env == "mock" else "TTTC8908R"
+                    krw_headers = {
+                        "content-type": "application/json",
+                        "authorization": f"Bearer {token}",
+                        "appkey": self.appkey,
+                        "appsecret": self.appsecret,
+                        "tr_id": tr_id_krw
+                    }
+                    krw_params = {
+                        "CANO": self.cano,
+                        "ACNT_PRDT_CD": self.acnt_prdt_cd,
+                        "PDNO": "005930",
+                        "ORD_UNPR": "1000",
+                        "ORD_DVSN": "00",
+                        "CMA_EVLU_AMT_ICLD_YN": "N",
+                        "OVRS_ICLD_YN": "N"
+                    }
+                    krw_res = requests.get(krw_url, headers=krw_headers, params=krw_params)
+                    if krw_res.status_code == 200:
+                        krw_data = krw_res.json().get("output", {})
+                        krw_cash = float(krw_data.get("ord_psbl_cash", 0.0))
+                except Exception as e:
+                    print(f"원화 예수금 조회 예외: {e}")
                 
-                return holdings, usd_cash, summary
+                return holdings, usd_cash, krw_cash, summary
 
             else:
                 raise Exception(f"잔고 조회 API 오류: {data.get('msg1')}")
