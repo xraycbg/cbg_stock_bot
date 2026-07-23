@@ -632,18 +632,29 @@ st.markdown(summary_html, unsafe_allow_html=True)
 # ➕ 새 프로젝트 생성 화면
 # ==========================================
 if st.session_state.view_mode == "CREATE" or not projects_dict:
-    st.markdown("### 🚀 새 프로젝트 생성")
+    st.markdown("### 새 프로젝트 생성")
     
-    new_p_ticker = st.selectbox("🎯 매매 종목 선택", ["SOXL", "TQQQ"], key="create_p_ticker")
+    new_p_ticker = st.selectbox("매매 종목 선택", ["SOXL", "TQQQ"], key="create_p_ticker")
     existing_count = sum(1 for p in projects_dict.values() if p.get("target_etf") == new_p_ticker)
     recommended_name = f"{new_p_ticker} {existing_count + 1}차"
+    
+    if "ticker_price_cache" not in st.session_state:
+        st.session_state.ticker_price_cache = {}
+    if new_p_ticker not in st.session_state.ticker_price_cache:
+        try:
+            st.session_state.ticker_price_cache[new_p_ticker] = api.get_current_price(new_p_ticker)
+        except:
+            st.session_state.ticker_price_cache[new_p_ticker] = 0.0
+            
+    curr_price = st.session_state.ticker_price_cache.get(new_p_ticker, 0.0)
+    min_budget_str = f" (최소 권장: ${curr_price * 2 * 40:,.2f} - 40회차 기준)" if curr_price > 0 else ""
 
     with st.form("create_proj_form"):
         new_p_name = st.text_input("프로젝트 이름", value=recommended_name, placeholder=f"예: {recommended_name}")
-        new_p_budget = st.number_input("💰 총 투자 예산 ($USD)", min_value=100.0, value=10000.0, step=500.0)
-        new_p_splits = st.number_input("⏳ 분할 회차 (Splits)", min_value=10, max_value=60, value=40)
+        new_p_budget = st.number_input(f"총 투자 예산 ($USD){min_budget_str}", min_value=100.0, value=10000.0, step=500.0)
+        new_p_splits = st.number_input("분할 회차 (Splits)", min_value=10, max_value=60, value=40)
         
-        create_submit = st.form_submit_button("✨ 새 프로젝트 생성 및 매매 시작", type="primary", use_container_width=True)
+        create_submit = st.form_submit_button("새 프로젝트 생성 및 매매 시작", type="primary", use_container_width=True)
         
         if create_submit:
             final_name = new_p_name.strip() if new_p_name.strip() else recommended_name
@@ -671,7 +682,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
             st.rerun()
 
     if projects_dict:
-        if st.button("❌ 취소 및 목록으로 돌아가기"):
+        if st.button("취소 및 목록으로 돌아가기"):
             st.session_state.view_mode = "LIST"
             st.rerun()
             
