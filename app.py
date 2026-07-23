@@ -980,7 +980,7 @@ with dash_tab:
         '''
         st.markdown(sync_html, unsafe_allow_html=True)
     
-        if st.button(f"🛠️ DB를 실제 계좌 기준({target_etf})으로 동기화"):
+        if st.button(f"🛠️ DB를 실제 계좌 기준({target_etf})으로 동기화", use_container_width=True):
             project_data["total_shares"] = actual_shares
             project_data["avg_price"] = actual_avg_price
             project_data["total_spent"] = actual_shares * actual_avg_price
