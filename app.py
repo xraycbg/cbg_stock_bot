@@ -707,17 +707,14 @@ with set_tab:
     st.markdown("---")
     with st.popover("🗑️ 프로젝트 삭제"):
         st.markdown("<div style='font-size:0.95rem; font-weight:700; margin-bottom:12px;'>정말 이 프로젝트를 영구적으로 삭제하시겠습니까?</div>", unsafe_allow_html=True)
-        d_col1, d_col2 = st.columns(2)
-        with d_col1:
-            if st.button("✅ 확인", use_container_width=True):
+        d_col1, d_col2, d_col3 = st.columns([1, 2, 1])
+        with d_col2:
+            if st.button("✅ 확인", type="primary", use_container_width=True):
                 del state["projects"][active_id]
                 rem = list(state["projects"].keys())
                 state["active_project_id"] = rem[0] if rem else None
                 db.update_state(state, sha)
                 st.session_state.view_mode = "CREATE" if not rem else "LIST"
-                st.rerun()
-        with d_col2:
-            if st.button("❌ 취소", type="primary", use_container_width=True):
                 st.rerun()
 
 with dash_tab:
