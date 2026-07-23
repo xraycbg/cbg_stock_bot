@@ -260,7 +260,7 @@ st.markdown("""
         min-height: 130px;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
     }
     
     .sell-box {
@@ -272,7 +272,7 @@ st.markdown("""
         min-height: 130px;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
     }
     
     .box-title-buy {
