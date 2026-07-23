@@ -678,15 +678,19 @@ if st.session_state.view_mode == "LIST":
             curr_price = get_cached_price(api, ticker)
         except Exception:
             curr_price = 0.0
-            
         display_curr = curr_price if curr_price > 0 else db_avg_price
         
         # 수익률 계산
         if db_avg_price > 0 and display_curr > 0:
             pnl_pct = ((display_curr - db_avg_price) / db_avg_price) * 100
-            pnl_html = f'<span class="pnl-pill-green">+{pnl_pct:.2f}%</span>' if pnl_pct >= 0 else f'<span class="pnl-pill-red">{pnl_pct:.2f}%</span>'
+            if pnl_pct > 0:
+                pnl_html = f'<span style="color:#34d399;">+{pnl_pct:.2f}%</span>'
+            elif pnl_pct < 0:
+                pnl_html = f'<span style="color:#f87171;">{pnl_pct:.2f}%</span>'
+            else:
+                pnl_html = '<span style="color:#94a3b8;">0.00%</span>'
         else:
-            pnl_html = '<span style="color:#64748b; font-size:0.8rem; font-weight:700;">0.00%</span>'
+            pnl_html = '<span style="color:#94a3b8;">0.00%</span>'
 
         # 오늘 2분할 LOC 매수가이드 계산
         rem_budget = max(0.0, total_budget - total_spent)
@@ -834,9 +838,14 @@ with dash_tab:
     display_curr = current_price if current_price > 0 else db_avg_price
     if db_avg_price > 0 and display_curr > 0:
         detail_pnl_pct = ((display_curr - db_avg_price) / db_avg_price) * 100
-        detail_pnl_html = f'<span class="pnl-pill-green">+{detail_pnl_pct:.2f}%</span>' if detail_pnl_pct >= 0 else f'<span class="pnl-pill-red">{detail_pnl_pct:.2f}%</span>'
+        if detail_pnl_pct > 0:
+            detail_pnl_html = f'<span style="color:#34d399;">+{detail_pnl_pct:.2f}%</span>'
+        elif detail_pnl_pct < 0:
+            detail_pnl_html = f'<span style="color:#f87171;">{detail_pnl_pct:.2f}%</span>'
+        else:
+            detail_pnl_html = '<span style="color:#94a3b8;">0.00%</span>'
     else:
-        detail_pnl_html = '<span style="color:#64748b; font-size:0.85rem; font-weight:700;">0.00%</span>'
+        detail_pnl_html = '<span style="color:#94a3b8;">0.00%</span>'
 
     detail_card_html = f"""<div class="pro-card">
 <div class="pro-card-header">
