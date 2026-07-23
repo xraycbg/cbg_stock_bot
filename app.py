@@ -716,22 +716,22 @@ if st.session_state.view_mode == "LIST":
 <span class="status-badge-active">진행중</span>
 </div>
 
-<div class="pro-metrics-grid">
-<div>
-<div class="metric-label">현재가</div>
-<div class="metric-value">${display_curr:.2f}</div>
+<div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
+<div class="summary-item">
+<div class="summary-label">현재가</div>
+<div class="summary-val">${display_curr:.2f}</div>
 </div>
-<div>
-<div class="metric-label">실시간손익</div>
-<div>{pnl_html}</div>
+<div class="summary-item">
+<div class="summary-label">실시간손익</div>
+<div class="summary-val">{pnl_html}</div>
 </div>
-<div>
-<div class="metric-label">{ticker} 평단</div>
-<div class="metric-value">${db_avg_price:.2f}</div>
+<div class="summary-item">
+<div class="summary-label">{ticker} 평단</div>
+<div class="summary-val">${db_avg_price:.2f}</div>
 </div>
-<div>
-<div class="metric-label">{ticker} 수량</div>
-<div class="metric-value">{db_shares:g}주</div>
+<div class="summary-item">
+<div class="summary-label">{ticker} 수량</div>
+<div class="summary-val">{db_shares:g}주</div>
 </div>
 </div>
 
@@ -847,22 +847,22 @@ with dash_tab:
 <span class="status-badge-active">진행중</span>
 </div>
 
-<div class="pro-metrics-grid">
-<div>
-<div class="metric-label">현재가</div>
-<div class="metric-value">${display_curr:.2f}</div>
+<div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
+<div class="summary-item">
+<div class="summary-label">현재가</div>
+<div class="summary-val">${display_curr:.2f}</div>
 </div>
-<div>
-<div class="metric-label">실시간손익</div>
-<div>{detail_pnl_html}</div>
+<div class="summary-item">
+<div class="summary-label">실시간손익</div>
+<div class="summary-val">{detail_pnl_html}</div>
 </div>
-<div>
-<div class="metric-label">{target_etf} 평단</div>
-<div class="metric-value">${db_avg_price:.2f}</div>
+<div class="summary-item">
+<div class="summary-label">{target_etf} 평단</div>
+<div class="summary-val">${db_avg_price:.2f}</div>
 </div>
-<div>
-<div class="metric-label">{target_etf} 수량</div>
-<div class="metric-value">{db_shares:g}주</div>
+<div class="summary-item">
+<div class="summary-label">{target_etf} 수량</div>
+<div class="summary-val">{db_shares:g}주</div>
 </div>
 </div>
 
