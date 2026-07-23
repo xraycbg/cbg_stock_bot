@@ -339,7 +339,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 환경 변수 로드
-load_dotenv(override=True)
+from pathlib import Path
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path, override=True)
 
 # DB 및 API 초기화
 if "github_db" not in st.session_state:
