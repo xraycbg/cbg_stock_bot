@@ -856,6 +856,10 @@ approve_buy2 = True if buy2_qty > 0 else False
 approve_sell = True if sell_qty > 0 else False
 
 if st.button("⚡ 한국투자증권 자동 주문 전송", type="primary", use_container_width=True):
+    # 페이지 로드 시 호출된 잔고조회 API 등과 주문 전송 API가 겹쳐 
+    # '초당 거래건수 초과(TPS)' 에러가 발생하는 것을 방지하기 위해 잠시 대기
+    time.sleep(1.0)
+    
     success_orders = 0
     fail_orders = 0
     messages = []
