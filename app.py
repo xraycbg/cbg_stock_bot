@@ -470,11 +470,164 @@ with hdr_col1:
     ''', unsafe_allow_html=True)
 
 with hdr_col2:
-    if st.button("➕ 새 사이클", key="top_new_cycle_btn", use_container_width=True):
-        st.session_state.view_mode = "CREATE"
-        st.rerun()
+    bt_btn_col, new_btn_col = st.columns(2)
+    with bt_btn_col:
+        if st.button("📊 백테스트", key="top_backtest_btn", use_container_width=True):
+            st.session_state.view_mode = "BACKTEST"
+            st.rerun()
+    with new_btn_col:
+        if st.button("➕ 새 사이클", key="top_new_cycle_btn", use_container_width=True):
+            st.session_state.view_mode = "CREATE"
+            st.rerun()
 
 st.markdown("<br>", unsafe_allow_html=True)
+
+projects_dict = state.get("projects", {})
+
+# ==========================================
+# 📊 과거 시세 백테스트 시뮬레이션 화면 (BACKTEST)
+# ==========================================
+if st.session_state.view_mode == "BACKTEST":
+    st.markdown("### 📊 과거 시세 & 무한매수 4.0 백테스트 시뮬레이션")
+    st.info("💡 과거 실제 종가 시세 데이터를 기반으로 7일, 1개월, 3개월, 6개월, 1년 동안 무한매수 4.0을 운영했을 때의 수익률과 자산 변화 그래프를 시뮬레이션합니다.")
+    
+    bt_col1, bt_col2 = st.columns(2)
+    with bt_col1:
+        bt_ticker = st.selectbox("🎯 백테스트 종목 선택", ["SOXL", "TQQQ"], key="bt_ticker")
+        bt_period = st.radio("⏳ 기간 선택", ["7일 (1주)", "1개월", "3개월", "6개월", "1년"], index=4, horizontal=True)
+    with bt_col2:
+        bt_budget = st.number_input("💰 초기 투자 예산 ($USD)", min_value=500.0, value=10000.0, step=500.0)
+        bt_splits = st.number_input("⏳ 분할 회차 (Splits)", min_value=10, max_value=60, value=40)
+        
+    days_map = {
+        "7일 (1주)": 7,
+        "1개월": 21,
+        "3개월": 63,
+        "6개월": 126,
+        "1년": 250
+    }
+    target_days = days_map.get(bt_period, 250)
+    
+    with st.spinner(f"[{bt_ticker}] {bt_period} 과거 일별 시세 데이터 조회 및 백테스트 연산 중..."):
+        daily_list = api.get_daily_history(bt_ticker, target_days)
+        
+        if not daily_list:
+            st.error("과거 시세 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")
+        else:
+            daily_sorted = list(reversed(daily_list))
+            
+            cash = float(bt_budget)
+            shares = 0.0
+            turn = 0
+            total_spent = 0.0
+            avg_price = 0.0
+            completed_cycles = 0
+            
+            sim_timeline = []
+            
+            for d in daily_sorted:
+                date_str = d.get("xymd", "")
+                formatted_date = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}" if len(date_str) == 8 else date_str
+                c_price = float(d.get("clos", 0.0))
+                l_price = float(d.get("low", c_price))
+                h_price = float(d.get("high", c_price))
+                
+                if c_price <= 0:
+                    continue
+                    
+                rem_budget = max(0.0, float(bt_budget) - total_spent)
+                daily_budget = rem_budget / (bt_splits - turn) if turn < bt_splits else 0.0
+                
+                buy1_p = avg_price if avg_price > 0 else c_price
+                buy1_q = math.floor((daily_budget * 0.5) / buy1_p) if buy1_p > 0 else 0
+                if buy1_q == 0 and daily_budget > 0 and buy1_p > 0:
+                    buy1_q = 1
+                    
+                buy2_p = c_price * 1.10
+                buy2_q = math.floor((daily_budget * 0.5) / buy2_p) if buy2_p > 0 else 0
+                if buy2_q == 0 and daily_budget > 0 and buy2_p > 0:
+                    buy2_q = 1
+                    
+                sell_p = avg_price * 1.10
+                
+                day_action = "관망"
+                
+                if shares > 0 and (h_price >= sell_p or c_price >= sell_p) and sell_p > 0:
+                    realized_p = (sell_p - avg_price) * shares
+                    cash = cash + (shares * sell_p)
+                    shares = 0.0
+                    turn = 0
+                    total_spent = 0.0
+                    avg_price = 0.0
+                    completed_cycles += 1
+                    day_action = f"🎉 익절 매도 (+${realized_p:.2f})"
+                else:
+                    executed_q = 0
+                    executed_cost = 0.0
+                    
+                    if (l_price <= buy1_p or c_price <= buy1_p) and buy1_q > 0 and (cash >= buy1_q * buy1_p):
+                        executed_q += buy1_q
+                        executed_cost += buy1_q * buy1_p
+                        
+                    if (h_price >= buy2_p or c_price >= buy2_p) and buy2_q > 0 and (cash >= executed_cost + (buy2_q * buy2_p)):
+                        executed_q += buy2_q
+                        executed_cost += buy2_q * buy2_p
+                        
+                    if executed_q > 0:
+                        cash -= executed_cost
+                        shares += executed_q
+                        total_spent += executed_cost
+                        avg_price = total_spent / shares if shares > 0 else 0.0
+                        turn += 1
+                        day_action = f"🔴 매수 체결 ({executed_q}주)"
+                        
+                portfolio_val = cash + (shares * c_price)
+                sim_timeline.append({
+                    "날짜": formatted_date,
+                    "종가 ($)": c_price,
+                    "무한매수 포트폴리오 ($)": round(portfolio_val, 2),
+                    "회차": turn,
+                    "보유수량": shares,
+                    "평단가 ($)": round(avg_price, 2),
+                    "당일 매매": day_action
+                })
+                
+            df_sim = pd.DataFrame(sim_timeline)
+            
+            if not df_sim.empty:
+                init_val = float(bt_budget)
+                final_val = df_sim["무한매수 포트폴리오 ($)"].iloc[-1]
+                total_ret_pct = ((final_val - init_val) / init_val) * 100
+                max_turn_reached = df_sim["회차"].max()
+                
+                first_stock_p = df_sim["종가 ($)"].iloc[0]
+                last_stock_p = df_sim["종가 ($)"].iloc[-1]
+                bnh_ret_pct = ((last_stock_p - first_stock_p) / first_stock_p) * 100
+                
+                st.markdown("---")
+                st.markdown("#### 🏆 백테스트 최종 성과 요약")
+                
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("최종 평가 자산", f"${final_val:,.2f}", f"{total_ret_pct:+.2f}%")
+                m2.metric("단순 보유(Buy&Hold) 수익률", f"{bnh_ret_pct:+.2f}%")
+                m3.metric("성공한 익절 사이클", f"{completed_cycles} 회")
+                m4.metric("최대 소진 회차", f"{max_turn_reached} 회 / {bt_splits}회")
+                
+                st.markdown("#### 📈 무한매수 4.0 자산 성장 곡선 ($USD)")
+                st.line_chart(df_sim.set_index("날짜")[["무한매수 포트폴리오 ($)"]])
+                
+                st.markdown("#### 📉 주가 추이 ($USD)")
+                st.line_chart(df_sim.set_index("날짜")[["종가 ($)"]])
+                
+                with st.expander("📜 일별 매매 시뮬레이션 세부 테이블 보기"):
+                    st.dataframe(df_sim, use_container_width=True)
+
+    if st.button("❌ 백테스트 종료 및 목록으로 돌아가기", use_container_width=True):
+        st.session_state.view_mode = "LIST"
+        st.rerun()
+        
+    st.stop()
+
 
 projects_dict = state.get("projects", {})
 

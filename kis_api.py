@@ -127,8 +127,60 @@ class KISApi:
 
         return 0.0
 
+    def get_daily_history(self, ticker, days=250):
+        """
+        해외주식 일별 시세(종가, 시가, 고가, 저가, 거래량) 과거 데이터를 조회합니다.
+        - ticker: "TQQQ", "SOXL"
+        - days: 조회 일수 (기본 250일 = 1년)
+        """
+        token = self.get_access_token()
+        excg = "AMS" if ticker.upper() == "SOXL" else "NAS"
+        url = f"{self.base_url}/uapi/overseas-price/v1/quotations/dailyprice"
+        
+        headers = {
+            "content-type": "application/json",
+            "authorization": f"Bearer {token}",
+            "appkey": self.appkey,
+            "appsecret": self.appsecret,
+            "tr_id": "HHDFS76240000"
+        }
+        
+        all_prices = []
+        bymd = ""
+        max_loops = math.ceil(days / 100) + 1
+        
+        for _ in range(max_loops):
+            params = {
+                "AUTH": "",
+                "EXCD": excg,
+                "SYMB": ticker.upper(),
+                "GUBN": "0",
+                "BYMD": bymd,
+                "MODP": "1"
+            }
+            try:
+                res = requests.get(url, headers=headers, params=params)
+                if res.status_code == 200:
+                    data = res.json()
+                    out = data.get("output2", [])
+                    if not out:
+                        break
+                    all_prices.extend(out)
+                    if len(all_prices) >= days:
+                        break
+                    bymd = out[-1].get("xymd", "")
+                    time.sleep(0.15)
+                else:
+                    break
+            except Exception as e:
+                print(f"일별 시세 조회 예외: {e}")
+                break
+                
+        return all_prices[:days]
+
 
     def get_balance(self):
+
         """
         해외주식 잔고 및 예수금 정보를 조회합니다.
         반환값: (보유 종목 리스트, 외화 예수금(달러), 요약 딕셔너리)
