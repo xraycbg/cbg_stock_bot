@@ -257,6 +257,10 @@ st.markdown("""
         border-radius: 18px;
         padding: 16px;
         margin-bottom: 12px;
+        min-height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
     
     .sell-box {
@@ -265,6 +269,10 @@ st.markdown("""
         border-radius: 18px;
         padding: 16px;
         margin-bottom: 12px;
+        min-height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
     
     .box-title-buy {
@@ -458,7 +466,7 @@ with st.sidebar:
 # ==========================================
 # 🔝 상단 Header Bar (Pro 타이틀 & + 새 사이클)
 # ==========================================
-hdr_col1, hdr_col2 = st.columns([3.2, 1.8])
+hdr_col1, hdr_col2 = st.columns([2.5, 2.5])
 
 with hdr_col1:
     env_badge = "🧪 모의투자" if api.env == "mock" else "🚀 실전투자"
@@ -1076,10 +1084,23 @@ if st.button(f"🚀 [{project_data['name']}] 주문들을 한국투자증권으�
 
 # 계좌 잔고 및 DB 동기화 센터
 with st.expander("🏦 계좌 잔고 및 실제 주식 수량 DB 동기화"):
-    c1, c2, c3 = st.columns(3)
-    c1.metric("사용 가능 예수금 (USD)", f"${usd_cash:,.2f}")
-    c2.metric(f"실제 {target_etf} 수량", f"{actual_shares} 주")
-    c3.metric(f"실제 {target_etf} 평단", f"${actual_avg_price:.2f}")
+    sync_html = f'''
+    <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 15px;">
+        <div class="summary-item">
+            <div class="summary-label">💵 사용 가능 예수금</div>
+            <div class="summary-val" style="font-size:1.0rem;">${usd_cash:,.2f}</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">📦 실제 {target_etf} 수량</div>
+            <div class="summary-val" style="font-size:1.0rem;">{actual_shares} 주</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">🎯 실제 {target_etf} 평단</div>
+            <div class="summary-val" style="font-size:1.0rem;">${actual_avg_price:.2f}</div>
+        </div>
+    </div>
+    '''
+    st.markdown(sync_html, unsafe_allow_html=True)
     
     if st.button(f"🛠️ DB를 실제 계좌 기준({target_etf})으로 동기화"):
         project_data["total_shares"] = actual_shares
