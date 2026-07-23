@@ -696,7 +696,7 @@ with b_col2:
     with st.popover("⚙️ 설정", use_container_width=True):
         st.markdown("<div style='font-size:0.9rem; font-weight:700; color:#cbd5e1; margin-bottom:8px;'>이름 변경</div>", unsafe_allow_html=True)
         new_name_val = st.text_input("새 사이클 이름", value=project_data["name"], label_visibility="collapsed")
-        if st.button("💾 이름 저장", type="primary", use_container_width=True):
+        if st.button("💾 이름 저장", use_container_width=True):
             if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
                 state["projects"][active_id]["name"] = new_name_val.strip()
                 db.update_state(state, sha)
