@@ -2,6 +2,7 @@ import requests
 import json
 import os
 import time
+import math
 from dotenv import load_dotenv
 
 # 로컬 환경 변수 로드
