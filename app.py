@@ -852,13 +852,9 @@ with ord_col2:
 st.markdown("---")
 st.markdown("### ⚡ 한국투자증권 자동 주문 전송")
 
-col_b1, col_b2, col_s = st.columns(3)
-with col_b1:
-    approve_buy1 = st.checkbox("1순위 승인 (평단)", value=True if buy1_qty > 0 else False, disabled=buy1_qty == 0)
-with col_b2:
-    approve_buy2 = st.checkbox("2순위 승인 (고가)", value=True if buy2_qty > 0 else False, disabled=buy2_qty == 0)
-with col_s:
-    approve_sell = st.checkbox("3순위 승인 (익절)", value=True if sell_qty > 0 else False, disabled=sell_qty == 0)
+approve_buy1 = True if buy1_qty > 0 else False
+approve_buy2 = True if buy2_qty > 0 else False
+approve_sell = True if sell_qty > 0 else False
 
 if st.button(f"🚀 [{project_data['name']}] 주문들을 한국투자증권으로 즉시 전송", type="primary", use_container_width=True):
     success_orders = 0
