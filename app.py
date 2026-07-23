@@ -661,7 +661,7 @@ if st.session_state.view_mode == "LIST":
 </div>
 
 <div class="guide-box">
-<div>🔴 <b>LOC 매수가이드</b>: 1순위 ${card_b1_price:.2f} ({card_b1_qty}주) | 2순위 ${card_b2_price:.2f} ({card_b2_qty}주)</div>
+<div>🔴 <b>오늘의 주문</b> : 평단 ${card_b1_price:.2f} ({card_b1_qty}주) | 고가 ${card_b2_price:.2f} ({card_b2_qty}주)</div>
 <div style="color:#818cf8; font-weight:800;">상세보기 →</div>
 </div>
 </div>"""
