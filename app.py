@@ -659,18 +659,14 @@ total_spent_budget = sum(float(p.get("total_spent", 0.0)) for p in projects_dict
 
 summary_html = f'''
 <div class="summary-card">
-    <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr);">
         <div class="summary-item">
-            <div class="summary-label">💵 사용 가능 외화예수금</div>
+            <div class="summary-label">💵 외화 예수금</div>
             <div class="summary-val">${usd_cash_val:,.2f}</div>
         </div>
         <div class="summary-item">
-            <div class="summary-label">₩ 사용 가능 원화예수금</div>
+            <div class="summary-label">₩ 원화 예수금</div>
             <div class="summary-val">{krw_cash_val:,.0f} 원</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-label">📊 운용 중인 사이클</div>
-            <div class="summary-val">{active_proj_count} 개 <span style="font-size:0.75rem; font-weight:600; color:#94a3b8;">(${total_spent_budget:,.0f} / ${total_allocated_budget:,.0f})</span></div>
         </div>
     </div>
 </div>
