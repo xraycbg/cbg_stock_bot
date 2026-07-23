@@ -682,9 +682,20 @@ if not active_id or active_id not in projects_dict:
 project_data = projects_dict[active_id]
 target_etf = project_data["target_etf"]
 
-if st.button("← 내 사이클 목록으로 돌아가기", key="back_btn"):
-    st.session_state.view_mode = "LIST"
-    st.rerun()
+# 상단 뒤로가기 및 삭제 버튼 (파란 박스 영역)
+b_col1, b_col2 = st.columns([4, 1])
+with b_col1:
+    if st.button("← 내 사이클 목록으로 돌아가기", key="back_btn"):
+        st.session_state.view_mode = "LIST"
+        st.rerun()
+with b_col2:
+    if st.button("🗑️ 삭제", use_container_width=True):
+        del state["projects"][active_id]
+        rem = list(state["projects"].keys())
+        state["active_project_id"] = rem[0] if rem else None
+        db.update_state(state, sha)
+        st.session_state.view_mode = "CREATE" if not rem else "LIST"
+        st.rerun()
 
 # 시세 및 잔고 API 조회
 with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 로딩 중..."):
@@ -723,7 +734,7 @@ if db_avg_price > 0 and display_curr > 0:
 else:
     detail_pnl_html = '<span style="color:#64748b; font-size:0.85rem; font-weight:700;">0.00%</span>'
 
-# 상단 타이틀 및 삭제 버튼 영역 (인라인 수정 가능)
+# 상단 타이틀 영역 (빨간 박스 영역: 누르면 이름 편집)
 hdr_left, hdr_right = st.columns([3, 1])
 with hdr_left:
     st.markdown(f'<span class="ticker-badge" style="margin-bottom:8px; display:inline-block;">{target_etf} 대시보드</span>', unsafe_allow_html=True)
@@ -735,13 +746,6 @@ with hdr_left:
 
 with hdr_right:
     st.markdown('<div style="text-align:right; margin-bottom:8px;"><span class="status-badge-active">진행중</span></div>', unsafe_allow_html=True)
-    if st.button("🗑️ 삭제", use_container_width=True):
-        del state["projects"][active_id]
-        rem = list(state["projects"].keys())
-        state["active_project_id"] = rem[0] if rem else None
-        db.update_state(state, sha)
-        st.session_state.view_mode = "CREATE" if not rem else "LIST"
-        st.rerun()
 
 detail_card_html = f"""<div class="pro-card" style="margin-top: 12px;">
 <div class="pro-metrics-grid">
