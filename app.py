@@ -921,7 +921,7 @@ st.markdown(detail_card_html, unsafe_allow_html=True)
 
 # 세부화면 내부 프로젝트 관리 메뉴
 with st.expander(f"⚙️ [{project_data['name']}] 사이클 설정 및 관리"):
-    m_col1, m_col2 = st.columns([3, 1])
+    m_col1, m_col2 = st.columns([2, 1.2])
     with m_col1:
         with st.form("detail_rename_form"):
             new_name_val = st.text_input("새 사이클 이름", value=project_data["name"])
@@ -1012,11 +1012,11 @@ st.markdown("### ⚡ 한국투자증권 자동 주문 전송")
 
 col_b1, col_b2, col_s = st.columns(3)
 with col_b1:
-    approve_buy1 = st.checkbox("주문 1 승인 (평단 LOC)", value=True if buy1_qty > 0 else False, disabled=buy1_qty == 0)
+    approve_buy1 = st.checkbox("1순위 승인 (평단)", value=True if buy1_qty > 0 else False, disabled=buy1_qty == 0)
 with col_b2:
-    approve_buy2 = st.checkbox("주문 2 승인 (고가 LOC)", value=True if buy2_qty > 0 else False, disabled=buy2_qty == 0)
+    approve_buy2 = st.checkbox("2순위 승인 (고가)", value=True if buy2_qty > 0 else False, disabled=buy2_qty == 0)
 with col_s:
-    approve_sell = st.checkbox("주문 3 승인 (익절 매도)", value=True if sell_qty > 0 else False, disabled=sell_qty == 0)
+    approve_sell = st.checkbox("3순위 승인 (익절)", value=True if sell_qty > 0 else False, disabled=sell_qty == 0)
 
 if st.button(f"🚀 [{project_data['name']}] 주문들을 한국투자증권으로 즉시 전송", type="primary", use_container_width=True):
     success_orders = 0
