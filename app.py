@@ -647,12 +647,13 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
             st.session_state.ticker_price_cache[new_p_ticker] = 0.0
             
     curr_price = st.session_state.ticker_price_cache.get(new_p_ticker, 0.0)
-    min_budget_str = f" (최소 권장: ${curr_price * 2 * 40:,.2f} - 40회차 기준)" if curr_price > 0 else ""
+    
+    new_p_splits = st.number_input("분할 회차 (Splits)", min_value=10, max_value=60, value=40)
+    min_budget_str = f" (최소 권장: {curr_price * 2 * new_p_splits:,.2f} USD - {new_p_splits}회차 기준)" if curr_price > 0 else ""
 
     with st.form("create_proj_form"):
         new_p_name = st.text_input("프로젝트 이름", value=recommended_name, placeholder=f"예: {recommended_name}")
-        new_p_budget = st.number_input(f"총 투자 예산 ($USD){min_budget_str}", min_value=100.0, value=10000.0, step=500.0)
-        new_p_splits = st.number_input("분할 회차 (Splits)", min_value=10, max_value=60, value=40)
+        new_p_budget = st.number_input(f"총 투자 예산 (USD){min_budget_str}", min_value=100.0, value=10000.0, step=500.0)
         
         create_submit = st.form_submit_button("새 프로젝트 생성 및 매매 시작", type="primary", use_container_width=True)
         
