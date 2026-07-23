@@ -752,41 +752,41 @@ with dash_tab:
         detail_pnl_html = '<span style="color:#64748b; font-size:0.85rem; font-weight:700;">0.00%</span>'
 
     detail_card_html = f"""<div class="pro-card">
-    <div class="pro-card-header">
-    <div>
-    <span class="ticker-badge">{target_etf} 대시보드</span>
-    <span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
-    </div>
-    <span class="status-badge-active">진행중</span>
-    </div>
+<div class="pro-card-header">
+<div>
+<span class="ticker-badge">{target_etf} 대시보드</span>
+<span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
+</div>
+<span class="status-badge-active">진행중</span>
+</div>
 
-    <div class="pro-metrics-grid">
-    <div>
-    <div class="metric-label">현재가</div>
-    <div class="metric-value">${display_curr:.2f}</div>
-    </div>
-    <div>
-    <div class="metric-label">평균매수가</div>
-    <div class="metric-value">${db_avg_price:.2f}</div>
-    </div>
-    <div>
-    <div class="metric-label">실시간손익</div>
-    <div>{detail_pnl_html}</div>
-    </div>
-    <div>
-    <div class="metric-label">보유수량</div>
-    <div class="metric-value">{db_shares:g}주</div>
-    </div>
-    </div>
+<div class="pro-metrics-grid">
+<div>
+<div class="metric-label">현재가</div>
+<div class="metric-value">${display_curr:.2f}</div>
+</div>
+<div>
+<div class="metric-label">평균매수가</div>
+<div class="metric-value">${db_avg_price:.2f}</div>
+</div>
+<div>
+<div class="metric-label">실시간손익</div>
+<div>{detail_pnl_html}</div>
+</div>
+<div>
+<div class="metric-label">보유수량</div>
+<div class="metric-value">{db_shares:g}주</div>
+</div>
+</div>
 
-    <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#94a3b8;">
-    <span>회차 진행률 ({turn_cnt} / {splits_cnt}회)</span>
-    <span style="color:#ffffff;">{prog_pct}% 완료</span>
-    </div>
-    <div class="roop-progress-bg">
-    <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
-    </div>
-    </div>"""
+<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#94a3b8;">
+<span>회차 진행률 ({turn_cnt} / {splits_cnt}회)</span>
+<span style="color:#ffffff;">{prog_pct}% 완료</span>
+</div>
+<div class="roop-progress-bg">
+<div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
+</div>
+</div>"""
     st.markdown(detail_card_html, unsafe_allow_html=True)
 
 
@@ -822,35 +822,35 @@ with dash_tab:
 
     with ord_col1:
         buy_html = f"""<div class="buy-box">
-    <div class="box-title-buy">매수 · LOC 2분할</div>
-    <div class="order-row">
-    <div>
-    <span class="price-bold">${buy1_price:.2f}</span>
-    <span class="qty-text"> × {buy1_qty}주</span>
-    </div>
-    <span class="tag-red">평단</span>
-    </div>
-    <div class="order-row">
-    <div>
-    <span class="price-bold">${buy2_price:.2f}</span>
-    <span class="qty-text"> × {buy2_qty}주</span>
-    </div>
-    <span class="tag-red">고가</span>
-    </div>
-    </div>"""
+<div class="box-title-buy">매수 · LOC 2분할</div>
+<div class="order-row">
+<div>
+<span class="price-bold">${buy1_price:.2f}</span>
+<span class="qty-text"> × {buy1_qty}주</span>
+</div>
+<span class="tag-red">평단</span>
+</div>
+<div class="order-row">
+<div>
+<span class="price-bold">${buy2_price:.2f}</span>
+<span class="qty-text"> × {buy2_qty}주</span>
+</div>
+<span class="tag-red">고가</span>
+</div>
+</div>"""
         st.markdown(buy_html, unsafe_allow_html=True)
 
     with ord_col2:
         sell_html = f"""<div class="sell-box">
-    <div class="box-title-sell">매도 · LOC / 지정가</div>
-    <div class="order-row">
-    <div>
-    <span class="price-bold">${sell_price:.2f}</span>
-    <span class="qty-text"> × {sell_qty:g}주</span>
-    </div>
-    <span class="tag-purple">+10% 익절</span>
-    </div>
-    </div>"""
+<div class="box-title-sell">매도 · LOC / 지정가</div>
+<div class="order-row">
+<div>
+<span class="price-bold">${sell_price:.2f}</span>
+<span class="qty-text"> × {sell_qty:g}주</span>
+</div>
+<span class="tag-purple">+10% 익절</span>
+</div>
+</div>"""
         st.markdown(sell_html, unsafe_allow_html=True)
 
     # 오늘의 주문 전송 섹션
