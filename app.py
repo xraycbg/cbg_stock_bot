@@ -330,6 +330,15 @@ st.markdown("""
         border-radius: 14px !important;
         font-weight: 700 !important;
     }
+
+    button[kind="primary"] {
+        padding: 0.8rem 1.5rem !important;
+    }
+    
+    button[kind="primary"] p {
+        font-size: 1.35rem !important;
+        font-weight: 900 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
