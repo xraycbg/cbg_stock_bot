@@ -9,7 +9,7 @@ from kis_api import KISApi
 
 # 페이지 기본 설정 (아이폰 및 모바일 뷰포트 최적화)
 st.set_page_config(
-    page_title="무한매수 4.0 Pro 대시보드",
+    page_title="cbg 무매40 대시보드",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -457,7 +457,7 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.markdown('<h2 style="font-weight:800; color:#38bdf8; text-align:center; margin-top:2rem;">🔒 무한매수 4.0 Pro 인증</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="font-weight:800; color:#38bdf8; text-align:center; margin-top:2rem;">🔒 cbg 무매40 인증</h2>', unsafe_allow_html=True)
     with st.form("auth_form"):
         password_input = st.text_input("접속 비밀번호 (PIN)", type="password", placeholder="비밀번호 입력")
         submit_btn = st.form_submit_button("🔓 로그인", type="primary", use_container_width=True)
@@ -527,7 +527,7 @@ with st.sidebar:
                 except Exception:
                     usd, krw = 0.0, 0.0
                 
-                msg = f"""🤖 *무한매수 4.0 Pro 시스템 알림*
+                msg = f"""🤖 *cbg 무매40 시스템 알림*
 
 🔹 *실행 환경*: {env_str}
 🔹 *진행 프로젝트*: {proj_name}
@@ -557,7 +557,7 @@ with hdr_col1:
     env_badge = "모의투자" if api.env == "mock" else "실전투자"
     st.markdown(f'''
     <div>
-        <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">무한매수 4.0 Pro</span>
+        <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">cbg 무매40</span>
         <span style="font-size:0.75rem; font-weight:800; background:rgba(99,102,241,0.25); color:#a5b4fc; padding:2px 8px; border-radius:12px; margin-left:6px;">{env_badge}</span>
     </div>
     ''', unsafe_allow_html=True)
