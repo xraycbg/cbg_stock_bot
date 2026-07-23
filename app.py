@@ -1017,7 +1017,7 @@ with dash_tab:
                 st.rerun()
 
     # 계좌 잔고 및 DB 동기화 센터
-    st.markdown("### 🏦 실 계좌 정보")
+    st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">🏦 실 계좌 정보</div>', unsafe_allow_html=True)
     with st.container():
         sync_html = f'''
         <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
