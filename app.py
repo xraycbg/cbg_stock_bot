@@ -1017,7 +1017,8 @@ with dash_tab:
                 st.rerun()
 
     # 계좌 잔고 및 DB 동기화 센터
-    with st.expander("🏦 계좌 잔고 및 실제 주식 수량 DB 동기화"):
+    st.markdown("### 🏦 실 계좌 정보")
+    with st.container():
         sync_html = f'''
         <div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 15px;">
             <div class="summary-item">
