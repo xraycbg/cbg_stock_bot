@@ -492,8 +492,15 @@ with st.sidebar:
     st.markdown("### 📲 텔레그램 연동")
     if st.button("🚀 텔레그램 테스트 발송", use_container_width=True):
         import requests
-        token = os.getenv("TELEGRAM_BOT_TOKEN")
-        chat_id = os.getenv("TELEGRAM_CHAT_ID")
+        
+        try:
+            cloud_token = st.secrets.get("TELEGRAM_BOT_TOKEN")
+            cloud_chat = st.secrets.get("TELEGRAM_CHAT_ID")
+        except Exception:
+            cloud_token, cloud_chat = None, None
+            
+        token = os.getenv("TELEGRAM_BOT_TOKEN") or cloud_token
+        chat_id = os.getenv("TELEGRAM_CHAT_ID") or cloud_chat
         
         if not token or not chat_id:
             st.error("텔레그램 설정이 필요합니다. (.env 확인)")
