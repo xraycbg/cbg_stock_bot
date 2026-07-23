@@ -423,7 +423,7 @@ if env_pwd and state.get("app_password") != env_pwd:
     state["app_password"] = env_pwd
     db.update_state(state, sha)
 
-APP_PASSWORD = state.get("app_password") or env_pwd or "0000"
+APP_PASSWORD = env_pwd or "0000"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
