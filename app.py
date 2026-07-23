@@ -352,11 +352,11 @@ db = st.session_state.github_db
 api = st.session_state.kis_api
 
 @st.cache_data(ttl=10)
-def get_cached_price(_api, ticker):
+def get_cached_price(_api, env_key, ticker):
     return _api.get_current_price(ticker)
 
 @st.cache_data(ttl=10)
-def get_cached_balance(_api):
+def get_cached_balance(_api, env_key):
     return _api.get_balance()
 
 raw_state, sha = db.get_state()
@@ -522,7 +522,7 @@ with st.sidebar:
                 target = project.get("target_etf", "N/A")
                 
                 try:
-                    _, usd, krw, _ = get_cached_balance(api)
+                    _, usd, krw, _ = get_cached_balance(api, api.env)
                 except Exception:
                     usd, krw = 0.0, 0.0
                 
@@ -577,7 +577,7 @@ if "token_retry_cnt" not in st.session_state:
     st.session_state.token_retry_cnt = 0
 
 try:
-    _, usd_cash_val, krw_cash_val, _ = get_cached_balance(api)
+    _, usd_cash_val, krw_cash_val, _ = get_cached_balance(api, api.env)
     st.session_state.token_retry_cnt = 0  # 성공 시 리셋
 except Exception:
     if st.session_state.token_retry_cnt < 2:
@@ -685,7 +685,7 @@ if st.session_state.view_mode == "LIST":
         
         # 현재가 조회 (오류 시 평단 또는 0)
         try:
-            curr_price = get_cached_price(api, ticker)
+            curr_price = get_cached_price(api, api.env, ticker)
         except Exception:
             curr_price = 0.0
         display_curr = curr_price if curr_price > 0 else db_avg_price
@@ -818,12 +818,12 @@ with dash_tab:
     # 시세 및 잔고 API 조회
     with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 로딩 중..."):
         try:
-            current_price = get_cached_price(api, target_etf)
+            current_price = get_cached_price(api, api.env, target_etf)
         except Exception as e:
             current_price = 0.0
         
         try:
-            holdings, usd_cash, krw_cash, account_summary = get_cached_balance(api)
+            holdings, usd_cash, krw_cash, account_summary = get_cached_balance(api, api.env)
             target_holding = None
             for hold in holdings:
                 if hold.get("pdno") == target_etf or hold.get("pd_no") == target_etf:
