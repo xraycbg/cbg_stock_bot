@@ -726,7 +726,7 @@ if st.session_state.view_mode == "LIST":
 <div class="summary-val">${display_curr:.2f}</div>
 </div>
 <div class="summary-item">
-<div class="summary-label">실시간손익</div>
+<div class="summary-label">실시간 손익</div>
 <div class="summary-val">{pnl_html}</div>
 </div>
 <div class="summary-item">
@@ -862,7 +862,7 @@ with dash_tab:
 <div class="summary-val">${display_curr:.2f}</div>
 </div>
 <div class="summary-item">
-<div class="summary-label">실시간손익</div>
+<div class="summary-label">실시간 손익</div>
 <div class="summary-val">{detail_pnl_html}</div>
 </div>
 <div class="summary-item">
