@@ -876,6 +876,8 @@ with dash_tab:
     turn_cnt = int(project_data.get('turn', 0))
     splits_cnt = int(project_data.get('splits', 40))
     prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
+    total_budget_val = float(project_data.get("total_budget", 0.0))
+    total_spent_val = float(project_data.get("total_spent", 0.0))
 
     display_curr = current_price if current_price > 0 else db_avg_price
     if db_avg_price > 0 and display_curr > 0:
@@ -914,6 +916,14 @@ with dash_tab:
 <div class="summary-item">
 <div class="summary-label">{target_etf} 수량</div>
 <div class="summary-val">{db_shares:g}주</div>
+</div>
+<div class="summary-item">
+<div class="summary-label">총 투자 예산</div>
+<div class="summary-val">${total_budget_val:,.0f}</div>
+</div>
+<div class="summary-item">
+<div class="summary-label">소진된 예산</div>
+<div class="summary-val">${total_spent_val:,.0f}</div>
 </div>
 </div>
 
