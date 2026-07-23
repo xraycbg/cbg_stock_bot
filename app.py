@@ -850,13 +850,12 @@ with ord_col2:
 
 # 한국투자증권 자동 주문 전송 섹션
 st.markdown("---")
-st.markdown("### ⚡ 한국투자증권 자동 주문 전송")
 
 approve_buy1 = True if buy1_qty > 0 else False
 approve_buy2 = True if buy2_qty > 0 else False
 approve_sell = True if sell_qty > 0 else False
 
-if st.button(f"🚀 [{project_data['name']}] 주문들을 한국투자증권으로 즉시 전송", type="primary", use_container_width=True):
+if st.button("⚡ 한국투자증권 자동 주문 전송", type="primary", use_container_width=True):
     success_orders = 0
     fail_orders = 0
     messages = []
