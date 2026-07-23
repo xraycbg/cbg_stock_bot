@@ -956,8 +956,8 @@ with dash_tab:
         messages = []
     
         order_data_log = [
-            {"구분": "매수 1순위 (평단 LOC)", "수량": buy1_qty, "단가": buy1_price},
-            {"구분": "매수 2순위 (고가 LOC)", "수량": buy2_qty, "단가": buy2_price}
+            {"구분": "절반 매수 (평단가 LOC)", "수량": buy1_qty, "단가": buy1_price},
+            {"구분": "절반 매수 (고가 LOC)", "수량": buy2_qty, "단가": buy2_price}
         ]
         if sell_qty > 0:
             order_data_log.append({"구분": "익절 매도", "수량": sell_qty, "단가": sell_price})
@@ -966,20 +966,20 @@ with dash_tab:
             success, res = api.place_order(target_etf, buy1_qty, buy1_price, order_type="34")
             if success:
                 success_orders += 1
-                messages.append(f"✅ 매수 1순위(평단 LOC) 성공: {buy1_qty}주 @ ${buy1_price:.2f}")
+                messages.append(f"✅ 절반 매수 (평단가 LOC) 성공: {buy1_qty}주 @ ${buy1_price:.2f}")
             else:
                 fail_orders += 1
-                messages.append(f"❌ 매수 1순위: {res}")
+                messages.append(f"❌ 절반 매수 (평단가 LOC): {res}")
             time.sleep(1.0)
             
         if approve_buy2 and buy2_qty > 0:
             success, res = api.place_order(target_etf, buy2_qty, buy2_price, order_type="34")
             if success:
                 success_orders += 1
-                messages.append(f"✅ 매수 2순위(고가 LOC) 성공: {buy2_qty}주 @ ${buy2_price:.2f}")
+                messages.append(f"✅ 절반 매수 (고가 LOC) 성공: {buy2_qty}주 @ ${buy2_price:.2f}")
             else:
                 fail_orders += 1
-                messages.append(f"❌ 매수 2순위: {res}")
+                messages.append(f"❌ 절반 매수 (고가 LOC): {res}")
             time.sleep(1.0)
             
         if approve_sell and sell_qty > 0:
