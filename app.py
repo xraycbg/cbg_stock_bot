@@ -694,8 +694,7 @@ dash_tab, set_tab = st.tabs(["📊 대시보드", "⚙️ 사이클 설정"])
 
 with set_tab:
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 📝 사이클 이름 변경")
-    new_name_val = st.text_input("새 사이클 이름", value=project_data["name"])
+    new_name_val = st.text_input("새 사이클 이름", value=project_data["name"], label_visibility="collapsed")
     if st.button("💾 이름 저장", type="primary"):
         if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
             state["projects"][active_id]["name"] = new_name_val.strip()
@@ -703,9 +702,7 @@ with set_tab:
             st.rerun()
     
     st.markdown("---")
-    st.markdown("### 🗑️ 사이클 삭제")
-    st.markdown("<div style='color:#94a3b8; font-size:0.9rem; margin-bottom:12px;'>이 사이클의 모든 데이터를 영구적으로 삭제합니다. 복구할 수 없습니다.</div>", unsafe_allow_html=True)
-    if st.button("🗑️ 삭제 실행", key="del_in_detail"):
+    if st.button("🗑️ 삭제", key="del_in_detail"):
         del state["projects"][active_id]
         rem = list(state["projects"].keys())
         state["active_project_id"] = rem[0] if rem else None
