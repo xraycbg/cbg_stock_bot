@@ -575,8 +575,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
 # ==========================================
 if st.session_state.view_mode == "LIST":
     st.markdown('''
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <span style="font-weight:800; color:#f8fafc; font-size:1.05rem;">내 무한매수 사이클</span>
+    <div style="text-align:right; margin-bottom:14px;">
         <span style="font-weight:600; color:#64748b; font-size:0.85rem;">총 {0}개 운용 중</span>
     </div>
     '''.format(len(projects_dict)), unsafe_allow_html=True)
