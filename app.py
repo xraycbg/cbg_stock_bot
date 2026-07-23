@@ -959,17 +959,21 @@ with dash_tab:
     # 계좌 잔고 및 DB 동기화 센터
     with st.expander("🏦 계좌 잔고 및 실제 주식 수량 DB 동기화"):
         sync_html = f'''
-        <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 15px;">
+        <div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 15px;">
             <div class="summary-item">
-                <div class="summary-label">💵 사용 가능 예수금</div>
+                <div class="summary-label">💵 외화 예수금</div>
                 <div class="summary-val" style="font-size:1.0rem;">${usd_cash:,.2f}</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">📦 실제 {target_etf} 수량</div>
+                <div class="summary-label">💴 원화 예수금</div>
+                <div class="summary-val" style="font-size:1.0rem;">{krw_cash:,.0f} 원</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">📦 {target_etf} 수량</div>
                 <div class="summary-val" style="font-size:1.0rem;">{actual_shares} 주</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">🎯 실제 {target_etf} 평단</div>
+                <div class="summary-label">🎯 {target_etf} 평단</div>
                 <div class="summary-val" style="font-size:1.0rem;">${actual_avg_price:.2f}</div>
             </div>
         </div>
