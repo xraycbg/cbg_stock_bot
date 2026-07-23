@@ -854,7 +854,6 @@ with ord_col2:
     st.markdown(sell_html, unsafe_allow_html=True)
 
 # 오늘의 주문 전송 섹션
-st.markdown("---")
 
 approve_buy1 = True if buy1_qty > 0 else False
 approve_buy2 = True if buy2_qty > 0 else False
