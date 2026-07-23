@@ -705,13 +705,20 @@ with set_tab:
                 st.rerun()
     
     st.markdown("---")
-    if st.button("🗑️ 삭제", key="del_in_detail"):
-        del state["projects"][active_id]
-        rem = list(state["projects"].keys())
-        state["active_project_id"] = rem[0] if rem else None
-        db.update_state(state, sha)
-        st.session_state.view_mode = "CREATE" if not rem else "LIST"
-        st.rerun()
+    with st.popover("🗑️ 프로젝트 삭제"):
+        st.markdown("<div style='font-size:0.95rem; font-weight:700; margin-bottom:12px;'>정말 이 프로젝트를 영구적으로 삭제하시겠습니까?</div>", unsafe_allow_html=True)
+        d_col1, d_col2 = st.columns(2)
+        with d_col1:
+            if st.button("✅ 확인", type="primary", use_container_width=True):
+                del state["projects"][active_id]
+                rem = list(state["projects"].keys())
+                state["active_project_id"] = rem[0] if rem else None
+                db.update_state(state, sha)
+                st.session_state.view_mode = "CREATE" if not rem else "LIST"
+                st.rerun()
+        with d_col2:
+            if st.button("❌ 취소", use_container_width=True):
+                st.rerun()
 
 with dash_tab:
     # 시세 및 잔고 API 조회
