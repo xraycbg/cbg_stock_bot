@@ -682,20 +682,9 @@ if not active_id or active_id not in projects_dict:
 project_data = projects_dict[active_id]
 target_etf = project_data["target_etf"]
 
-# 상단 뒤로가기 및 삭제 버튼 (파란 박스 영역)
-b_col1, b_col2 = st.columns([4, 1])
-with b_col1:
-    if st.button("← 내 사이클 목록으로 돌아가기", key="back_btn"):
-        st.session_state.view_mode = "LIST"
-        st.rerun()
-with b_col2:
-    if st.button("🗑️ 삭제", use_container_width=True):
-        del state["projects"][active_id]
-        rem = list(state["projects"].keys())
-        state["active_project_id"] = rem[0] if rem else None
-        db.update_state(state, sha)
-        st.session_state.view_mode = "CREATE" if not rem else "LIST"
-        st.rerun()
+if st.button("← 내 사이클 목록으로 돌아가기", key="back_btn"):
+    st.session_state.view_mode = "LIST"
+    st.rerun()
 
 # 시세 및 잔고 API 조회
 with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 로딩 중..."):
@@ -734,20 +723,15 @@ if db_avg_price > 0 and display_curr > 0:
 else:
     detail_pnl_html = '<span style="color:#64748b; font-size:0.85rem; font-weight:700;">0.00%</span>'
 
-# 상단 타이틀 영역 (빨간 박스 영역: 누르면 이름 편집)
-hdr_left, hdr_right = st.columns([3, 1])
-with hdr_left:
-    st.markdown(f'<span class="ticker-badge" style="margin-bottom:8px; display:inline-block;">{target_etf} 대시보드</span>', unsafe_allow_html=True)
-    new_name = st.text_input("사이클 이름 편집", value=project_data['name'], label_visibility="collapsed")
-    if new_name != project_data['name'] and new_name.strip():
-        state["projects"][active_id]["name"] = new_name.strip()
-        db.update_state(state, sha)
-        st.rerun()
+detail_card_html = f"""<div class="pro-card">
+<div class="pro-card-header">
+<div>
+<span class="ticker-badge">{target_etf} 대시보드</span>
+<span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
+</div>
+<span class="status-badge-active">진행중</span>
+</div>
 
-with hdr_right:
-    st.markdown('<div style="text-align:right; margin-bottom:8px;"><span class="status-badge-active">진행중</span></div>', unsafe_allow_html=True)
-
-detail_card_html = f"""<div class="pro-card" style="margin-top: 12px;">
 <div class="pro-metrics-grid">
 <div>
 <div class="metric-label">현재가</div>
@@ -776,6 +760,30 @@ detail_card_html = f"""<div class="pro-card" style="margin-top: 12px;">
 </div>
 </div>"""
 st.markdown(detail_card_html, unsafe_allow_html=True)
+
+# 세부화면 내부 프로젝트 관리 메뉴
+with st.expander(f"⚙️ [{project_data['name']}] 사이클 설정 및 관리"):
+    m_col1, m_col2 = st.columns([2, 1.2])
+    with m_col1:
+        with st.form("detail_rename_form"):
+            new_name_val = st.text_input("새 사이클 이름", value=project_data["name"])
+            if st.form_submit_button("💾 이름 저장", type="primary"):
+                if new_name_val.strip():
+                    state["projects"][active_id]["name"] = new_name_val.strip()
+                    _, sha = db.update_state(state, sha)
+                    st.success("이름이 변경되었습니다!")
+                    st.rerun()
+    with m_col2:
+        st.write("")
+        st.write("")
+        if st.button("🗑️ 사이클 삭제", key="del_in_detail", use_container_width=True):
+            del state["projects"][active_id]
+            rem = list(state["projects"].keys())
+            state["active_project_id"] = rem[0] if rem else None
+            _, sha = db.update_state(state, sha)
+            st.session_state.view_mode = "CREATE" if not rem else "LIST"
+            st.success("삭제되었습니다.")
+            st.rerun()
 
 # V4.0 주문 계산
 turn = int(project_data.get("turn", 0))
