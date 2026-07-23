@@ -690,16 +690,19 @@ if st.button("← 목록", key="back_btn"):
     st.session_state.view_mode = "LIST"
     st.rerun()
 
-dash_tab, set_tab = st.tabs(["📊 대시보드", "⚙️ 사이클 설정"])
+dash_tab, set_tab = st.tabs(["📊 대시보드", "⚙️ 설정"])
 
 with set_tab:
     st.markdown("<br>", unsafe_allow_html=True)
-    new_name_val = st.text_input("새 사이클 이름", value=project_data["name"], label_visibility="collapsed")
-    if st.button("💾 이름 저장", type="primary"):
-        if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
-            state["projects"][active_id]["name"] = new_name_val.strip()
-            db.update_state(state, sha)
-            st.rerun()
+    rn_col1, rn_col2 = st.columns([4, 1])
+    with rn_col1:
+        new_name_val = st.text_input("새 사이클 이름", value=project_data["name"], label_visibility="collapsed")
+    with rn_col2:
+        if st.button("💾 저장", type="primary", use_container_width=True):
+            if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
+                state["projects"][active_id]["name"] = new_name_val.strip()
+                db.update_state(state, sha)
+                st.rerun()
     
     st.markdown("---")
     if st.button("🗑️ 삭제", key="del_in_detail"):
