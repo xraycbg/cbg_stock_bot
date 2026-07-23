@@ -20,11 +20,25 @@ class GitHubDB:
             "Accept": "application/vnd.github.v3+json"
         }
 
+    def _get_st_session(self):
+        try:
+            import streamlit as st
+            from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+            if get_script_run_ctx():
+                return st.session_state
+        except ImportError:
+            pass
+        return None
+
     def get_state(self):
         """
         깃허브 레포지토리에서 state.json 파일을 다운로드하여 딕셔너리로 반환합니다.
-        파일이 없거나 오류가 발생하면 기본값을 생성하여 반환합니다.
+        Streamlit 세션 캐시가 있으면 네트워크 요청 없이 즉시 반환합니다.
         """
+        session = self._get_st_session()
+        if session is not None and "github_db_state" in session and "github_db_sha" in session:
+            return session["github_db_state"], session["github_db_sha"]
+            
         try:
             res = requests.get(self.base_url, headers=self.headers)
             if res.status_code == 200:
@@ -34,6 +48,11 @@ class GitHubDB:
                 content_bytes = base64.b64decode(data["content"])
                 content_str = content_bytes.decode("utf-8")
                 state = json.loads(content_str)
+                
+                if session is not None:
+                    session["github_db_state"] = state
+                    session["github_db_sha"] = sha
+                    
                 return state, sha
             elif res.status_code == 404:
                 # 파일이 없을 경우 기본 템플릿 반환
@@ -75,17 +94,35 @@ class GitHubDB:
         res = requests.put(self.base_url, headers=self.headers, data=json.dumps(payload))
         if res.status_code in [200, 201]:
             print("성공적으로 state.json 상태가 깃허브에 업데이트되었습니다.")
-            return True, res.json()["content"]["sha"]
+            new_sha = res.json()["content"]["sha"]
+            
+            session = self._get_st_session()
+            if session is not None:
+                session["github_db_state"] = new_state
+                session["github_db_sha"] = new_sha
+                
+            return True, new_sha
         else:
             # SHA 불일치 (409/422 등) 발생 시 최신 SHA로 자동 1회 재시도
             print(f"상태 감지 SHA 재동기화 시도 (상태코드: {res.status_code})")
+            
+            # session 비우기 (최신 정보를 다시 불러오도록 강제)
+            session = self._get_st_session()
+            if session is not None:
+                session.pop("github_db_state", None)
+                session.pop("github_db_sha", None)
+                
             _, latest_sha = self.get_state()
             if latest_sha:
                 payload["sha"] = latest_sha
                 retry_res = requests.put(self.base_url, headers=self.headers, data=json.dumps(payload))
                 if retry_res.status_code in [200, 201]:
                     print("SHA 재동기화 성공 후 저장되었습니다.")
-                    return True, retry_res.json()["content"]["sha"]
+                    new_sha = retry_res.json()["content"]["sha"]
+                    if session is not None:
+                        session["github_db_state"] = new_state
+                        session["github_db_sha"] = new_sha
+                    return True, new_sha
             print(f"상태 업데이트 실패: {res.status_code} - {res.text}")
             return False, sha
 

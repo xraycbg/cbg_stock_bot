@@ -352,6 +352,14 @@ if "kis_api" not in st.session_state:
 db = st.session_state.github_db
 api = st.session_state.kis_api
 
+@st.cache_data(ttl=10)
+def get_cached_price(_api, ticker):
+    return _api.get_current_price(ticker)
+
+@st.cache_data(ttl=10)
+def get_cached_balance(_api):
+    return _api.get_balance()
+
 raw_state, sha = db.get_state()
 
 # 고유 ID 기반 프로젝트 정규화
@@ -486,6 +494,8 @@ with st.sidebar:
     st.text(f"Path: {db.file_path}")
     if st.button("🔄 GitHub DB 다시 불러오기"):
         st.cache_data.clear()
+        st.session_state.pop("github_db_state", None)
+        st.session_state.pop("github_db_sha", None)
         st.rerun()
         
     st.markdown("---")
@@ -513,7 +523,7 @@ with st.sidebar:
                 target = project.get("target_etf", "N/A")
                 
                 try:
-                    _, usd, krw, _ = api.get_balance()
+                    _, usd, krw, _ = get_cached_balance(api)
                 except Exception:
                     usd, krw = 0.0, 0.0
                 
@@ -565,7 +575,7 @@ projects_dict = state.get("projects", {})
 # 📊 상단 스마트 계좌 브리핑 (Executive Summary)
 # ==========================================
 try:
-    _, usd_cash_val, krw_cash_val, _ = api.get_balance()
+    _, usd_cash_val, krw_cash_val, _ = get_cached_balance(api)
 except Exception:
     usd_cash_val = 0.0
     krw_cash_val = 0.0
@@ -665,7 +675,7 @@ if st.session_state.view_mode == "LIST":
         
         # 현재가 조회 (오류 시 평단 또는 0)
         try:
-            curr_price = api.get_current_price(ticker)
+            curr_price = get_cached_price(api, ticker)
         except Exception:
             curr_price = 0.0
             
@@ -794,12 +804,12 @@ with dash_tab:
     # 시세 및 잔고 API 조회
     with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 로딩 중..."):
         try:
-            current_price = api.get_current_price(target_etf)
+            current_price = get_cached_price(api, target_etf)
         except Exception as e:
             current_price = 0.0
         
         try:
-            holdings, usd_cash, krw_cash, account_summary = api.get_balance()
+            holdings, usd_cash, krw_cash, account_summary = get_cached_balance(api)
             target_holding = None
             for hold in holdings:
                 if hold.get("pdno") == target_etf or hold.get("pd_no") == target_etf:
