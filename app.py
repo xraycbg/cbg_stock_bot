@@ -811,7 +811,7 @@ sell_price = db_avg_price * 1.10
 sell_qty = db_shares
 
 # 오늘의 주문 2열 카드
-st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">오늘의 매매 주문 가이드</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">오늘의 주문</div>', unsafe_allow_html=True)
 
 ord_col1, ord_col2 = st.columns(2)
 
@@ -848,14 +848,14 @@ with ord_col2:
 </div>"""
     st.markdown(sell_html, unsafe_allow_html=True)
 
-# 한국투자증권 자동 주문 전송 섹션
+# 오늘의 주문 전송 섹션
 st.markdown("---")
 
 approve_buy1 = True if buy1_qty > 0 else False
 approve_buy2 = True if buy2_qty > 0 else False
 approve_sell = True if sell_qty > 0 else False
 
-if st.button("⚡ 한국투자증권 자동 주문 전송", type="primary", use_container_width=True):
+if st.button("⚡ 오늘의 주문 전송", type="primary", use_container_width=True):
     # 페이지 로드 시 호출된 잔고조회 API 등과 주문 전송 API가 겹쳐 
     # '초당 거래건수 초과(TPS)' 에러가 발생하는 것을 방지하기 위해 잠시 대기
     time.sleep(1.0)
