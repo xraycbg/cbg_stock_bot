@@ -688,9 +688,9 @@ if st.session_state.view_mode == "LIST":
             elif pnl_pct < 0:
                 pnl_html = f'<span style="color:#f87171;">{pnl_pct:.2f}%</span>'
             else:
-                pnl_html = '<span style="color:#94a3b8;">0.00%</span>'
+                pnl_html = '0.00%'
         else:
-            pnl_html = '<span style="color:#94a3b8;">0.00%</span>'
+            pnl_html = '0.00%'
 
         # 오늘 2분할 LOC 매수가이드 계산
         rem_budget = max(0.0, total_budget - total_spent)
@@ -843,9 +843,9 @@ with dash_tab:
         elif detail_pnl_pct < 0:
             detail_pnl_html = f'<span style="color:#f87171;">{detail_pnl_pct:.2f}%</span>'
         else:
-            detail_pnl_html = '<span style="color:#94a3b8;">0.00%</span>'
+            detail_pnl_html = '0.00%'
     else:
-        detail_pnl_html = '<span style="color:#94a3b8;">0.00%</span>'
+        detail_pnl_html = '0.00%'
 
     detail_card_html = f"""<div class="pro-card">
 <div class="pro-card-header">
