@@ -443,7 +443,7 @@ try:
 except Exception:
     cloud_pwd = None
 
-APP_PASSWORD = env_pwd or cloud_pwd or state.get("app_password") or "zzzz"
+APP_PASSWORD = env_pwd or cloud_pwd or state.get("app_password") or "aaaa"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
