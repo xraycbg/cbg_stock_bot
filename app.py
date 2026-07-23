@@ -437,7 +437,13 @@ if env_pwd and state.get("app_password") != env_pwd:
     state["app_password"] = env_pwd
     db.update_state(state, sha)
 
-APP_PASSWORD = env_pwd or "0000"
+# 1. Local .env -> 2. Streamlit Secrets -> 3. GitHub DB -> 4. Default 'zzzz'
+try:
+    cloud_pwd = st.secrets.get("APP_PASSWORD")
+except Exception:
+    cloud_pwd = None
+
+APP_PASSWORD = env_pwd or cloud_pwd or state.get("app_password") or "zzzz"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -452,7 +458,7 @@ if not st.session_state.authenticated:
                 st.session_state.authenticated = True
                 st.rerun()
             else:
-                st.error(f"❌ 비밀번호가 올바르지 않습니다. (디버그: env_pwd='{env_pwd}', APP_PASSWORD='{APP_PASSWORD}')")
+                st.error("❌ 비밀번호가 올바르지 않습니다.")
     st.stop()
 
 # 뷰 모드 관리
