@@ -457,10 +457,10 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.markdown('<h2 style="font-weight:800; color:#38bdf8; text-align:center; margin-top:2rem;">🔒 cbg 무매40 인증</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="font-weight:800; color:#38bdf8; text-align:center; margin-top:2rem;">cbg 무매40 인증</h2>', unsafe_allow_html=True)
     with st.form("auth_form"):
         password_input = st.text_input("접속 비밀번호 (PIN)", type="password", placeholder="비밀번호 입력")
-        submit_btn = st.form_submit_button("🔓 로그인", type="primary", use_container_width=True)
+        submit_btn = st.form_submit_button("로그인", type="primary", use_container_width=True)
         if submit_btn:
             if password_input.strip() == str(APP_PASSWORD).strip():
                 st.session_state.authenticated = True
