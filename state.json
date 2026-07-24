@@ -1,6 +1,21 @@
 {
   "active_project": "TQQQ",
-  "projects": {},
+  "projects": {
+    "proj_1784861964": {
+      "id": "proj_1784861964",
+      "name": "SOXL 1차 (40회차 - $100,001)",
+      "target_etf": "SOXL",
+      "total_budget": 100001.0,
+      "splits": 40,
+      "turn": 0,
+      "avg_price": 0.0,
+      "total_shares": 0.0,
+      "total_spent": 0.0,
+      "status": "진행중",
+      "created_at": "2026-07-24 02:59:24",
+      "history": []
+    }
+  },
   "app_password": "aaaa",
-  "active_project_id": "proj_1784861906"
+  "active_project_id": "proj_1784861964"
 }
