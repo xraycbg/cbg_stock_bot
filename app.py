@@ -482,6 +482,16 @@ if "kis_api" not in st.session_state:
 db = st.session_state.github_db
 api = st.session_state.kis_api
 
+# 전역 환율 캐싱 로직
+if "krw_usd_rate" not in st.session_state:
+    try:
+        import requests
+        res = requests.get("https://query1.finance.yahoo.com/v8/finance/chart/KRW=X", headers={"User-Agent": "Mozilla/5.0"}, timeout=3)
+        rate = res.json()["chart"]["result"][0]["meta"]["regularMarketPrice"]
+        st.session_state.krw_usd_rate = float(rate)
+    except:
+        st.session_state.krw_usd_rate = 1400.0 # 조회 실패 시 기본값
+
 @st.cache_data(ttl=300, show_spinner=True)
 def get_cached_price(_api, env_key, ticker):
     return _api.get_current_price(ticker)
@@ -796,15 +806,8 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
                 
         curr_price = st.session_state.ticker_price_cache.get(new_p_ticker, 0.0)
         
-        # 환율 캐싱 로직
-        if "krw_usd_rate" not in st.session_state:
-            try:
-                import requests
-                res = requests.get("https://query1.finance.yahoo.com/v8/finance/chart/KRW=X", headers={"User-Agent": "Mozilla/5.0"}, timeout=3)
-                rate = res.json()["chart"]["result"][0]["meta"]["regularMarketPrice"]
-                st.session_state.krw_usd_rate = float(rate)
-            except:
-                st.session_state.krw_usd_rate = 1400.0 # 조회 실패 시 기본값
+        # 환율은 전역에서 캐싱된 값 사용
+        exch_rate = st.session_state.krw_usd_rate
         
         exch_rate = st.session_state.krw_usd_rate
 
@@ -1032,10 +1035,12 @@ if st.session_state.view_mode == "LIST":
     <div class="summary-item">
     <div class="summary-label">총 투자 예산</div>
     <div class="summary-val">${total_budget:,.0f}</div>
+    <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">({total_budget * st.session_state.krw_usd_rate:,.0f}원)</div>
     </div>
     <div class="summary-item">
     <div class="summary-label">소진된 예산</div>
     <div class="summary-val">${total_spent:,.0f}</div>
+    <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">({total_spent * st.session_state.krw_usd_rate:,.0f}원)</div>
     </div>
     </div>
 
