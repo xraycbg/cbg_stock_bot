@@ -845,6 +845,50 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
             st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 ${converted_usd:,.0f}**로 설정됩니다.")
             final_budget_usd = converted_usd
             
+        import streamlit.components.v1 as components
+        components.html("""
+        <script>
+            const interval = setInterval(() => {
+                const inputs = window.parent.document.querySelectorAll('input[aria-label^="총 투자 예산"]');
+                if (inputs.length > 0) {
+                    let attached = false;
+                    inputs.forEach(input => {
+                        if (!input.dataset.commaListener) {
+                            input.dataset.commaListener = 'true';
+                            attached = true;
+                            input.addEventListener('input', function(e) {
+                                let cursorPosition = this.selectionStart;
+                                let oldLength = this.value.length;
+                                
+                                let val = this.value.replace(/[^0-9]/g, '');
+                                if (val) {
+                                    let newVal = parseInt(val, 10).toLocaleString('en-US');
+                                    if (this.value !== newVal) {
+                                        let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+                                        nativeInputValueSetter.call(this, newVal);
+                                        this.dispatchEvent(new Event('input', { bubbles: true }));
+                                        
+                                        let newLength = this.value.length;
+                                        cursorPosition = cursorPosition + (newLength - oldLength);
+                                        this.setSelectionRange(cursorPosition, cursorPosition);
+                                    }
+                                } else {
+                                    if (this.value !== "") {
+                                        let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+                                        nativeInputValueSetter.call(this, "");
+                                        this.dispatchEvent(new Event('input', { bubbles: true }));
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    if (attached) clearInterval(interval);
+                }
+            }, 100);
+            setTimeout(() => clearInterval(interval), 5000); // 5초 뒤 강제 종료
+        </script>
+        """, height=0)
+            
         is_budget_valid = (final_budget_usd >= min_usd)
         if not is_budget_valid:
             st.error(f"⚠️ 예산 부족: 최소 권장 예산(${min_usd:,.0f} / 약 {min_krw:,.0f}원) 이상을 입력하셔야 정상적으로 봇이 동작합니다.")
