@@ -425,7 +425,7 @@ st.markdown("""
     div[data-testid="stElementContainer"]:has(.title-btn-marker) + div[data-testid="stElementContainer"] button * {
         text-align: left !important;
         justify-content: flex-start !important;
-        font-size: 2.2rem !important;
+        font-size: 1.65rem !important;
         font-weight: 900 !important;
         color: #ffffff !important;
         margin: 0 !important;
@@ -912,7 +912,7 @@ if st.session_state.view_mode == "LIST":
             
             hdr_col1, hdr_col2, hdr_col3 = st.columns([7.5, 1.5, 0.1], vertical_alignment="center")
             with hdr_col1:
-                st.markdown(f'<span class="ticker-badge" style="display: inline-block;">{ticker} · {excg_tag}</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="ticker-badge" style="display: inline-block; margin-top: 8px;">{ticker} · {excg_tag}</span>', unsafe_allow_html=True)
             with hdr_col2:
                 st.markdown('<div class="del-btn-wrapper"></div>', unsafe_allow_html=True)
                 if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
