@@ -7,13 +7,33 @@
       "target_etf": "SOXL",
       "total_budget": 13630.0,
       "splits": 40,
-      "turn": 0,
+      "turn": 0.0,
       "avg_price": 0.0,
       "total_shares": 0.0,
       "total_spent": 0.0,
       "status": "진행중",
       "created_at": "2026-07-24 04:56:16",
-      "history": []
+      "history": [
+        {
+          "date": "2026-07-24 14:26:39",
+          "env": "mock",
+          "target": "SOXL",
+          "turn_before": 0.0,
+          "turn_after": 0.0,
+          "orders": [
+            {
+              "구분": "절반 매수 (평단가 LOC)",
+              "수량": 1,
+              "단가": 141.365
+            },
+            {
+              "구분": "절반 매수 (고가 LOC)",
+              "수량": 1,
+              "단가": 155.50150000000002
+            }
+          ]
+        }
+      ]
     }
   },
   "app_password": "aaaa",
