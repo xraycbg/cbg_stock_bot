@@ -1031,11 +1031,11 @@ if st.session_state.view_mode == "LIST":
     </div>
     <div class="summary-item">
     <div class="summary-label">총 투자 예산</div>
-    <div class="summary-val">${total_budget:,.0f}<br><span style="font-size:0.75rem; color:#94a3b8; font-weight:600;">({total_budget * exch_rate:,.0f}원)</span></div>
+    <div class="summary-val">${total_budget:,.0f}</div>
     </div>
     <div class="summary-item">
     <div class="summary-label">소진된 예산</div>
-    <div class="summary-val">${total_spent:,.0f}<br><span style="font-size:0.75rem; color:#94a3b8; font-weight:600;">({total_spent * exch_rate:,.0f}원)</span></div>
+    <div class="summary-val">${total_spent:,.0f}</div>
     </div>
     </div>
 
