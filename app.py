@@ -378,7 +378,7 @@ def normalize_state(s):
             "target_etf": old_target,
             "total_budget": float(s.get("total_budget", 10000.0)),
             "splits": int(s.get("splits", 40)),
-            "turn": int(s.get("turn", 0)),
+            "turn": float(s.get("turn", 0.0)),
             "avg_price": float(s.get("avg_price", 0.0)),
             "total_shares": float(s.get("total_shares", 0.0)),
             "total_spent": float(s.get("total_spent", 0.0)),
@@ -409,7 +409,7 @@ def normalize_state(s):
                 "target_etf": p.get("target_etf", "TQQQ"),
                 "total_budget": float(p.get("total_budget", 10000.0)),
                 "splits": int(p.get("splits", 40)),
-                "turn": int(p.get("turn", 0)),
+                "turn": float(p.get("turn", 0.0)),
                 "avg_price": float(p.get("avg_price", 0.0)),
                 "total_shares": float(p.get("total_shares", 0.0)),
                 "total_spent": float(p.get("total_spent", 0.0)),
@@ -706,7 +706,7 @@ if st.session_state.view_mode == "LIST":
     for p in p_items:
         p_id = p["id"]
         ticker = p.get("target_etf", "TQQQ")
-        turn_cnt = int(p.get('turn', 0))
+        turn_cnt = float(p.get('turn', 0.0))
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
@@ -782,7 +782,7 @@ if st.session_state.view_mode == "LIST":
 </div>
 
 <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:#94a3b8;">
-<span>회차 진행률 ({turn_cnt}/{splits_cnt}회)</span>
+<span>회차 진행률 ({turn_cnt:g}/{splits_cnt}회)</span>
 <span style="color:#ffffff;">${total_spent:,.0f} / ${total_budget:,.0f}</span>
 </div>
 <div class="roop-progress-bg">
@@ -873,7 +873,7 @@ with dash_tab:
     db_shares = float(project_data.get("total_shares", 0.0))
     db_avg_price = float(project_data.get("avg_price", 0.0))
 
-    turn_cnt = int(project_data.get('turn', 0))
+    turn_cnt = float(project_data.get('turn', 0.0))
     splits_cnt = int(project_data.get('splits', 40))
     prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
     total_budget_val = float(project_data.get("total_budget", 0.0))
@@ -928,7 +928,7 @@ with dash_tab:
 </div>
 
 <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#94a3b8;">
-<span>회차 진행률 ({turn_cnt} / {splits_cnt}회)</span>
+<span>회차 진행률 ({turn_cnt:g} / {splits_cnt}회)</span>
 <span style="color:#ffffff;">{prog_pct}% 완료</span>
 </div>
 <div class="roop-progress-bg">
@@ -939,7 +939,7 @@ with dash_tab:
 
 
     # V4.0 주문 계산
-    turn = int(project_data.get("turn", 0))
+    turn = float(project_data.get("turn", 0.0))
     splits = int(project_data.get("splits", 40))
     total_budget = float(project_data.get("total_budget", 10000.0))
     total_spent = float(project_data.get("total_spent", 0.0))
@@ -1058,8 +1058,7 @@ with dash_tab:
         if success_orders > 0 and fail_orders == 0:
             st.success(f"🎉 모든 주문이 성공적으로 전송되었습니다!")
             if approve_buy1 or approve_buy2:
-                project_data["turn"] = turn + 1
-            
+                pass # 주문 전송 시 임의로 turn을 더하지 않습니다. (4.0 정식 역산 적용)            
             log_entry = {
                 "date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "env": api.env,
@@ -1106,6 +1105,17 @@ with dash_tab:
             project_data["total_shares"] = actual_shares
             project_data["avg_price"] = actual_avg_price
             project_data["total_spent"] = actual_shares * actual_avg_price
+            
+            # 동기화 시 소진된 예산을 바탕으로 0.5회차 단위 역산 적용 (4.0 공식)
+            splits_val = float(project_data.get("splits", 40.0))
+            if splits_val > 0:
+                base_daily_budget = project_data.get("total_budget", 0.0) / splits_val
+                if base_daily_budget > 0:
+                    project_data["turn"] = round((project_data["total_spent"] / base_daily_budget) * 2) / 2
+                else:
+                    project_data["turn"] = 0.0
+            else:
+                project_data["turn"] = 0.0
             if actual_shares == 0:
                 project_data["turn"] = 0
             
