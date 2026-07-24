@@ -132,7 +132,7 @@ st.markdown("""
     }
 
 
-    div[data-testid="stVerticalBlockBorderWrapper"]:has(.pro-card-marker) {
+    div[data-testid="stVerticalBlockBorderWrapper"] {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 22px !important;
@@ -141,8 +141,8 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
     }
     
-    div[data-testid="stVerticalBlockBorderWrapper"]:has(.pro-card-marker) > div {
-        gap: 0 !important;
+    div[data-testid="stVerticalBlockBorderWrapper"] > div {
+        gap: 0.5rem !important;
     }
 
     .pro-card-header {
@@ -420,6 +420,15 @@ st.markdown("""
         padding: 0 !important;
         justify-content: flex-start !important;
         box-shadow: none !important;
+    }
+    
+    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] div[data-testid="stMarkdownContainer"],
+    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] p {
+        text-align: left !important;
+        width: 100% !important;
+        margin: 0 !important;
+        display: flex !important;
+        justify-content: flex-start !important;
     }
     
     div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"]:hover {
@@ -908,10 +917,8 @@ if st.session_state.view_mode == "LIST":
                     confirm_delete_dialog(p_id, p['name'])
         
             # 제목을 버튼(tertiary)으로 렌더링
-            t_col1, t_col2 = st.columns([8, 2])
-            with t_col1:
-                if st.button(p['name'], key=f"edit_title_{p_id}", type="tertiary", use_container_width=True, help="클릭하여 제목 수정"):
-                    edit_title_dialog(p_id, p['name'])
+            if st.button(p['name'], key=f"edit_title_{p_id}", type="tertiary", use_container_width=True, help="클릭하여 제목 수정"):
+                edit_title_dialog(p_id, p['name'])
 
             card_html2 = f"""
     <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
