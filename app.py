@@ -629,7 +629,7 @@ total_allocated_budget = sum(float(p.get("total_budget", 10000.0)) for p in proj
 total_spent_budget = sum(float(p.get("total_spent", 0.0)) for p in projects_dict.values())
 
 summary_html = f'''
-<div class="summary-card">
+<div class="summary-card" style="margin-bottom: 0px;">
     <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr);">
         <div class="summary-item">
             <div class="summary-label">외화 예수금</div>
@@ -650,6 +650,7 @@ if st.button("증권사 계좌정보 강제 갱신", use_container_width=True):
     st.session_state.ticker_price_cache = {} # 현재가 캐시 날리기
     st.rerun() # 화면 즉시 새로고침
 
+st.markdown("---")
 # ==========================================
 # ➕ 새 프로젝트 생성 화면
 # ==========================================
