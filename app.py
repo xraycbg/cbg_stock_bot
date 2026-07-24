@@ -133,11 +133,11 @@ st.markdown("""
 
     div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"]:first-child .pro-card-marker) {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
-        border: 2px solid #8b5cf6 !important;
+        border: 1px solid rgba(139, 92, 246, 0.4) !important;
         border-radius: 22px !important;
         padding: 18px 20px !important;
         margin-bottom: 24px !important;
-        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
     }
     
     div[data-testid="stElementContainer"]:has(.pro-card-marker) {
