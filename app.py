@@ -124,21 +124,21 @@ st.markdown("""
     /* 📋 Pro 프로젝트 대시보드 카드 */
     .pro-card {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%);
-        border: 1px solid #475569;
+        border: 1.5px solid #8b5cf6;
         border-radius: 22px;
         padding: 18px 20px;
         margin-bottom: 0px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
     }
 
 
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
-        border: 1px solid #475569 !important;
+        border: 1.5px solid #8b5cf6 !important;
         border-radius: 22px !important;
         padding: 14px 20px 18px 20px !important;
         margin-bottom: 24px !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25) !important;
         position: relative !important;
     }
     
