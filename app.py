@@ -139,6 +139,7 @@ st.markdown("""
         padding: 14px 20px 18px 20px !important;
         margin-bottom: 24px !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+        position: relative !important;
     }
     
     div[data-testid="stVerticalBlockBorderWrapper"] > div {
@@ -279,7 +280,22 @@ st.markdown("""
         pointer-events: auto !important;
     }
     
-    div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) button {
+    /* 삭제 버튼: 마커 기반 절대 좌표 방식 사용 */
+    div[data-testid="stElementContainer"]:has(.del-btn-marker) {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    div[data-testid="stElementContainer"]:has(.del-btn-marker) + div[data-testid="stElementContainer"] {
+        position: absolute !important;
+        top: 14px !important;
+        right: 20px !important;
+        width: auto !important;
+        z-index: 50 !important;
+    }
+
+    div[data-testid="stElementContainer"]:has(.del-btn-marker) + div[data-testid="stElementContainer"] button {
         background: rgba(239, 68, 68, 0.15) !important;
         color: #ef4444 !important;
         border: 1px solid rgba(239, 68, 68, 0.3) !important;
@@ -294,10 +310,10 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         box-shadow: none !important;
-        margin-top: 0px !important;
+        margin: 0 !important;
     }
     
-    div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) button:hover {
+    div[data-testid="stElementContainer"]:has(.del-btn-marker) + div[data-testid="stElementContainer"] button:hover {
         background: rgba(239, 68, 68, 0.25) !important;
         border-color: rgba(239, 68, 68, 0.5) !important;
     }
@@ -917,13 +933,13 @@ if st.session_state.view_mode == "LIST":
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
         with st.container(border=True):
-            hdr_col1, hdr_col2, hdr_col3 = st.columns([7.5, 1.5, 0.1], vertical_alignment="center")
-            with hdr_col1:
-                st.markdown(f'<div style="height: 24px; display: flex; align-items: center;"><span class="ticker-badge" style="display: inline-block; margin: 0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
-            with hdr_col2:
-                st.markdown('<div class="del-btn-wrapper"></div>', unsafe_allow_html=True)
-                if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
-                    confirm_delete_dialog(p_id, p['name'])
+            # 1. 뱃지 (첫째줄 왼쪽)
+            st.markdown(f'<div style="margin-bottom: 4px;"><span class="ticker-badge" style="margin:0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
+            
+            # 2. 삭제 버튼 (첫째줄 오른쪽 - 절대 위치)
+            st.markdown('<div class="del-btn-marker" style="display:none;"></div>', unsafe_allow_html=True)
+            if st.button("삭제", key=f"del_btn_{p_id}"):
+                confirm_delete_dialog(p_id, p['name'])
         
             # 제목을 버튼으로 렌더링 (CSS 타겟팅을 위한 마커 삽입)
             st.markdown('<div class="title-btn-marker" style="display:none;"></div>', unsafe_allow_html=True)
