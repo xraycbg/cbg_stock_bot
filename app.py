@@ -1092,7 +1092,7 @@ if st.session_state.view_mode == "LIST":
                         st.rerun()
 
             # 구분선
-            st.markdown('<hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 28px 0 16px 0;">', unsafe_allow_html=True)
+            st.markdown('<hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 8px 0 16px 0;">', unsafe_allow_html=True)
 
             # 계좌 잔고 및 DB 동기화 센터
             st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-bottom:12px;">실 계좌 정보</div>', unsafe_allow_html=True)
