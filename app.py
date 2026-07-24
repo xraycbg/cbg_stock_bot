@@ -132,23 +132,16 @@ st.markdown("""
     }
 
 
-    div[data-testid="stElementContainer"]:has(.pro-card-marker-before) {
-        display: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    div[data-testid="stElementContainer"]:has(.pro-card-marker-before) + div[data-testid="stElementContainer"] > div {
+    div[data-testid="stVerticalBlock"]:has(.pro-card-marker) {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
-        border: 1.5px solid #8b5cf6 !important;
+        border: 2px solid #8b5cf6 !important;
         border-radius: 22px !important;
-        padding: 14px 20px 18px 20px !important;
+        padding: 18px 20px !important;
         margin-bottom: 24px !important;
         box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25) !important;
-        position: relative !important;
     }
     
-    div[data-testid="stElementContainer"]:has(.pro-card-marker-before) + div[data-testid="stElementContainer"] > div > div {
+    div[data-testid="stVerticalBlock"]:has(.pro-card-marker) > div {
         gap: 0.5rem !important;
     }
 
@@ -938,8 +931,8 @@ if st.session_state.view_mode == "LIST":
 
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
-        st.markdown('<div class="pro-card-marker-before" style="display:none;"></div>', unsafe_allow_html=True)
-        with st.container(border=True):
+        with st.container(border=False):
+            st.markdown('<div class="pro-card-marker" style="display:none;"></div>', unsafe_allow_html=True)
             hdr_col1, hdr_col2 = st.columns([1, 1], vertical_alignment="center")
             with hdr_col1:
                 st.markdown(f'<div style="height: 24px; display: flex; align-items: flex-start; transform: translateY(-7px);"><span class="ticker-badge" style="margin:0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
