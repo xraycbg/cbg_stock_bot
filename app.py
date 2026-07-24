@@ -690,11 +690,11 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
         if input_type == "USD (달러)":
             new_p_budget_usd = st.number_input(f"총 투자 예산 (USD){min_budget_str}", min_value=100.0, value=10000.0, step=500.0)
             st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 {new_p_budget_usd * exch_rate:,.0f}원**이 소모됩니다.")
-            final_budget_usd = new_p_budget_usd
+            final_budget_usd = round(new_p_budget_usd)
         else:
             new_p_budget_krw = st.number_input(f"총 투자 예산 (KRW){min_budget_str}", min_value=100000.0, value=14000000.0, step=1000000.0)
-            converted_usd = new_p_budget_krw / exch_rate
-            st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 ${converted_usd:,.2f}**로 설정됩니다.")
+            converted_usd = round(new_p_budget_krw / exch_rate)
+            st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 ${converted_usd:,.0f}**로 설정됩니다.")
             final_budget_usd = converted_usd
     
         with st.form("create_proj_form", border=False):
