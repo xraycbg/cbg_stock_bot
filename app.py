@@ -281,7 +281,7 @@ st.markdown("""
     }
     
     /* 삭제 버튼 컬럼 자체를 우측 정렬 */
-    div[data-testid="column"]:has(.del-col-marker) > div[data-testid="stVerticalBlock"] {
+    div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) > div:last-child > div[data-testid="stVerticalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         justify-content: flex-end !important;
@@ -289,12 +289,13 @@ st.markdown("""
         width: 100% !important;
     }
 
-    div[data-testid="stElementContainer"]:has(.del-col-marker) {
+    /* 마커 숨김 */
+    div[data-testid="stElementContainer"]:has(.del-btn-wrapper) {
         display: none !important;
     }
 
     /* 삭제 버튼 스타일링 */
-    div[data-testid="column"]:has(.del-col-marker) button {
+    div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) button {
         background: rgba(239, 68, 68, 0.15) !important;
         color: #ef4444 !important;
         border: 1px solid rgba(239, 68, 68, 0.3) !important;
@@ -313,7 +314,7 @@ st.markdown("""
         width: auto !important;
     }
     
-    div[data-testid="column"]:has(.del-col-marker) button:hover {
+    div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) button:hover {
         background: rgba(239, 68, 68, 0.25) !important;
         border-color: rgba(239, 68, 68, 0.5) !important;
     }
@@ -936,7 +937,7 @@ if st.session_state.view_mode == "LIST":
             with hdr_col1:
                 st.markdown(f'<div style="height: 24px; display: flex; align-items: center;"><span class="ticker-badge" style="margin:0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
             with hdr_col2:
-                st.markdown('<div class="del-col-marker" style="display:none;"></div>', unsafe_allow_html=True)
+                st.markdown('<div class="del-btn-wrapper" style="display:none;"></div>', unsafe_allow_html=True)
                 if st.button("삭제", key=f"del_btn_{p_id}"):
                     confirm_delete_dialog(p_id, p['name'])
         
