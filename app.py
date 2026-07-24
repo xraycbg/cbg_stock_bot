@@ -813,6 +813,14 @@ if st.session_state.view_mode == "LIST":
 
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
+        del_col1, del_col2 = st.columns([5, 1])
+        with del_col2:
+            with st.popover("삭제", use_container_width=True):
+                if st.button("확인", key=f"del_{p_id}", use_container_width=True):
+                    del state["projects"][p_id]
+                    db.update_state(state, sha)
+                    st.rerun()
+
         card_html = f"""<div class="pro-card list-card-touch">
 <div class="pro-card-header">
 <div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0;">
