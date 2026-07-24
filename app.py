@@ -252,7 +252,7 @@ st.markdown("""
     div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) {
         position: relative;
         z-index: 101 !important;
-        margin-bottom: -65px !important;
+        margin-bottom: -75px !important;
     }
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
@@ -380,11 +380,11 @@ if "kis_api" not in st.session_state:
 db = st.session_state.github_db
 api = st.session_state.kis_api
 
-@st.cache_data(ttl=10, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_price(_api, env_key, ticker):
     return _api.get_current_price(ticker)
 
-@st.cache_data(ttl=10, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_balance(_api, env_key):
     return _api.get_balance()
 
@@ -835,7 +835,7 @@ if st.session_state.view_mode == "LIST":
 
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
-        del_col1, del_col2, del_col3 = st.columns([7, 2, 0.5])
+        del_col1, del_col2, del_col3 = st.columns([7.5, 2, 0.1])
         with del_col2:
             st.markdown('<div class="del-btn-marker"></div>', unsafe_allow_html=True)
             if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
