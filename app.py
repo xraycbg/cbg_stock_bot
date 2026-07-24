@@ -1099,14 +1099,6 @@ if st.session_state.view_mode == "LIST":
             sync_html = f'''
             <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
                 <div class="summary-item">
-                    <div class="summary-label">외화 예수금</div>
-                    <div class="summary-val" style="font-size:1.0rem;">${usd_cash_val:,.2f}</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">원화 예수금</div>
-                    <div class="summary-val" style="font-size:1.0rem;">{krw_cash_val:,.0f} 원</div>
-                </div>
-                <div class="summary-item">
                     <div class="summary-label">{ticker} 평단</div>
                     <div class="summary-val" style="font-size:1.0rem;">${actual_avg_price:.2f}</div>
                 </div>
