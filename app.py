@@ -935,7 +935,7 @@ if st.session_state.view_mode == "LIST":
         with st.container(border=True):
             hdr_col1, hdr_col2 = st.columns([1, 1], vertical_alignment="center")
             with hdr_col1:
-                st.markdown(f'<div style="height: 24px; display: flex; align-items: center;"><span class="ticker-badge" style="margin:0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="height: 24px; display: flex; align-items: flex-start;"><span class="ticker-badge" style="margin:0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
             with hdr_col2:
                 st.markdown('<div class="del-btn-wrapper" style="display:none;"></div>', unsafe_allow_html=True)
                 if st.button("삭제", key=f"del_btn_{p_id}"):
