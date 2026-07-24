@@ -129,6 +129,8 @@ st.markdown("""
         padding: 18px 20px;
         margin-bottom: 0px;
         box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+    }
+
     div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"]:first-child .pro-card-marker) {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
         border: 2px solid #8b5cf6 !important;
