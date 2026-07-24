@@ -1,6 +1,21 @@
 {
   "active_project": "TQQQ",
-  "projects": {},
+  "projects": {
+    "proj_1784859691": {
+      "id": "proj_1784859691",
+      "name": "TQQQ 1차 (40회차 - $10,000)",
+      "target_etf": "TQQQ",
+      "total_budget": 10000.0,
+      "splits": 40,
+      "turn": 0,
+      "avg_price": 0.0,
+      "total_shares": 0.0,
+      "total_spent": 0.0,
+      "status": "진행중",
+      "created_at": "2026-07-24 02:21:31",
+      "history": []
+    }
+  },
   "app_password": "aaaa",
-  "active_project_id": "proj_1784857970"
+  "active_project_id": "proj_1784859691"
 }
