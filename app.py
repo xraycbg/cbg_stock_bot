@@ -311,6 +311,7 @@ st.markdown("""
         justify-content: center !important;
         box-shadow: none !important;
         margin: 0 !important;
+        margin-top: 6px !important;
         width: auto !important;
     }
     
