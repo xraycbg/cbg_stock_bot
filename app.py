@@ -709,7 +709,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
         if not is_budget_valid:
             st.error(f"⚠️ 예산 부족: 최소 권장 예산(${min_usd:,.0f} / 약 {min_krw:,.0f}원) 이상을 입력하셔야 정상적으로 봇이 동작합니다.")
             
-        recommended_name = f"{new_p_ticker} {existing_count + 1}차 ({new_p_splits}회차, ${final_budget_usd:,.0f})"
+        recommended_name = f"{new_p_ticker} {existing_count + 1}차 ({new_p_splits}회차 - ${final_budget_usd:,.0f})"
     
         with st.form("create_proj_form", border=False):
             new_p_name = st.text_input("프로젝트 이름", value=recommended_name, placeholder=f"예: {recommended_name}")
