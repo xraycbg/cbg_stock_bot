@@ -31,6 +31,21 @@ def confirm_delete_dialog(p_id, p_name):
         if st.button("취소", use_container_width=True):
             st.rerun()
 
+@st.dialog("프로젝트 제목 편집")
+def edit_title_dialog(p_id, old_name):
+    new_name = st.text_input("새 프로젝트 제목", value=old_name)
+    d_col1, d_col2 = st.columns(2)
+    with d_col1:
+        if st.button("저장", use_container_width=True, type="primary"):
+            state, sha = db.get_state()
+            if state and p_id in state["projects"]:
+                state["projects"][p_id]["name"] = new_name.strip()
+                db.update_state(state, sha)
+            st.rerun()
+    with d_col2:
+        if st.button("취소", use_container_width=True):
+            st.rerun()
+
 # ------------------------------------------
 # 🎨 Next-Gen Pro Glassmorphism 디자인 시스템
 # ------------------------------------------
@@ -387,6 +402,22 @@ st.markdown("""
         font-size: 1.15rem !important;
         font-weight: 900 !important;
     }
+
+    /* 클릭 가능한 제목 버튼용 (tertiary) */
+    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] {
+        font-size: 1.3rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        justify-content: flex-start !important;
+        box-shadow: none !important;
+    }
+    
+    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"]:hover {
+        color: #a5b4fc !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -404,11 +435,11 @@ if "kis_api" not in st.session_state:
 db = st.session_state.github_db
 api = st.session_state.kis_api
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=True)
 def get_cached_price(_api, env_key, ticker):
     return _api.get_current_price(ticker)
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=True)
 def get_cached_balance(_api, env_key):
     return _api.get_balance()
 
@@ -657,7 +688,7 @@ if "token_retry_cnt" not in st.session_state:
     st.session_state.token_retry_cnt = 0
 
 try:
-    _, usd_cash_val, krw_cash_val, _ = get_cached_balance(api, api.env)
+    holdings, usd_cash_val, krw_cash_val, _ = get_cached_balance(api, api.env)
     st.session_state.token_retry_cnt = 0  # 성공 시 리셋
 except Exception:
     if st.session_state.token_retry_cnt < 2:
@@ -868,10 +899,18 @@ if st.session_state.view_mode == "LIST":
 <div class="pro-card-header">
 <div style="display: flex; flex-direction: column; align-items: flex-start; overflow: hidden; white-space: nowrap; min-width: 0; max-width: 75%;">
 <span class="ticker-badge" style="flex-shrink: 0; margin-bottom: 6px;">{ticker} · {excg_tag}</span>
-<span class="pro-card-title" style="margin-left:0px;">{p['name']}</span>
 </div>
 </div>
+"""
+        st.markdown(card_html, unsafe_allow_html=True)
+        
+        # 제목을 버튼(tertiary)으로 렌더링
+        t_col1, t_col2 = st.columns([8, 2])
+        with t_col1:
+            if st.button(p['name'], key=f"edit_title_{p_id}", type="tertiary", use_container_width=True, help="클릭하여 제목 수정"):
+                edit_title_dialog(p_id, p['name'])
 
+        card_html2 = f"""
 <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
 <div class="summary-item">
 <div class="summary-label">현재가</div>
@@ -889,353 +928,183 @@ if st.session_state.view_mode == "LIST":
 <div class="summary-label">{ticker} 수량</div>
 <div class="summary-val">{db_shares:g}주</div>
 </div>
+<div class="summary-item">
+<div class="summary-label">총 투자 예산</div>
+<div class="summary-val">${total_budget:,.0f}</div>
+</div>
+<div class="summary-item">
+<div class="summary-label">소진된 예산</div>
+<div class="summary-val">${total_spent:,.0f}</div>
+</div>
 </div>
 
-<div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:#94a3b8;">
+<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#94a3b8;">
 <span>회차 진행률 ({turn_cnt:g}/{splits_cnt}회)</span>
 <span style="color:#ffffff;">${total_spent:,.0f} / ${total_budget:,.0f}</span>
 </div>
 <div class="roop-progress-bg">
 <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
 </div>
+"""
+        st.markdown(card_html2, unsafe_allow_html=True)
 
-<div class="guide-box">
-<div><b>오늘의 주문</b> : 매수 {buy_count}건 | 매도 {sell_count}건</div>
-<div style="color:#818cf8; font-weight:800;">상세보기 →</div>
-</div>
-</div>"""
-        st.markdown(card_html, unsafe_allow_html=True)
+        # 오늘의 주문 2열 카드
+        st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">오늘의 주문</div>', unsafe_allow_html=True)
 
-        if st.button(" ", key=f"overlay_click_{p_id}", use_container_width=True):
-            state["active_project_id"] = p_id
-            db.update_state(state, sha)
-            st.session_state.view_mode = "DETAIL"
-            st.rerun()
-
-    st.stop()
-
-# ==========================================
-# 🔍 VIEW MODE 2: 360도 Pro 세부 대시보드 (DETAIL)
-# ==========================================
-active_id = state.get("active_project_id")
-if not active_id or active_id not in projects_dict:
-    st.session_state.view_mode = "LIST"
-    st.rerun()
-
-project_data = projects_dict[active_id]
-target_etf = project_data["target_etf"]
-
-if st.button("목록 보기", key="back_btn"):
-    st.session_state.view_mode = "LIST"
-    st.rerun()
-
-dash_tab, set_tab = st.tabs(["대시보드", "설정"])
-
-with set_tab:
-    st.markdown("<br>", unsafe_allow_html=True)
-    rn_col1, rn_col2 = st.columns([4, 1])
-    with rn_col1:
-        new_name_val = st.text_input("새 프로젝트 이름", value=project_data["name"], label_visibility="collapsed")
-    with rn_col2:
-        if st.button("저장", use_container_width=True):
-            if new_name_val.strip() and new_name_val.strip() != project_data["name"]:
-                state["projects"][active_id]["name"] = new_name_val.strip()
-                db.update_state(state, sha)
-                st.rerun()
-    
-    st.markdown("---")
-    with st.popover("프로젝트 삭제", use_container_width=True):
-
-        d_col1, d_col2, d_col3 = st.columns([1, 2, 1])
-        with d_col2:
-            if st.button("확인", use_container_width=True):
-                del state["projects"][active_id]
-                rem = list(state["projects"].keys())
-                state["active_project_id"] = rem[0] if rem else None
-                db.update_state(state, sha)
-                st.session_state.view_mode = "CREATE" if not rem else "LIST"
-                st.rerun()
-
-with dash_tab:
-    # 시세 및 잔고 API 조회
-    with st.spinner(f"[{project_data['name']}] 실시간 시세 및 계좌 잔고 로딩 중..."):
-        try:
-            current_price = get_cached_price(api, api.env, target_etf)
-        except Exception as e:
-            current_price = 0.0
-        
-        try:
-            holdings, usd_cash, krw_cash, account_summary = get_cached_balance(api, api.env)
-            target_holding = None
-            for hold in holdings:
-                if hold.get("pdno") == target_etf or hold.get("pd_no") == target_etf:
-                    target_holding = hold
-                    break
-            actual_shares = float(target_holding.get("allo_qty", target_holding.get("ccld_qty", 0.0))) if target_holding else 0.0
-            actual_avg_price = float(target_holding.get("pchs_avg_pric", 0.0)) if target_holding else 0.0
-        except Exception as e:
-            actual_shares = 0.0
-            actual_avg_price = 0.0
-            usd_cash = 0.0
-            krw_cash = 0.0
-            holdings = []
-
-    db_shares = float(project_data.get("total_shares", 0.0))
-    db_avg_price = float(project_data.get("avg_price", 0.0))
-
-    turn_cnt = float(project_data.get('turn', 0.0))
-    splits_cnt = int(project_data.get('splits', 40))
-    prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
-    total_budget_val = float(project_data.get("total_budget", 0.0))
-    total_spent_val = float(project_data.get("total_spent", 0.0))
-
-    display_curr = current_price if current_price > 0 else db_avg_price
-    if db_avg_price > 0 and display_curr > 0:
-        detail_pnl_pct = ((display_curr - db_avg_price) / db_avg_price) * 100
-        if detail_pnl_pct > 0:
-            detail_pnl_html = f'<span style="color:#34d399;">+{detail_pnl_pct:.2f}%</span>'
-        elif detail_pnl_pct < 0:
-            detail_pnl_html = f'<span style="color:#f87171;">{detail_pnl_pct:.2f}%</span>'
-        else:
-            detail_pnl_html = '0.00%'
-    else:
-        detail_pnl_html = '0.00%'
-
-    excg_tag = "AMEX" if target_etf == "SOXL" else "NASD"
-
-    detail_card_html = f"""<div class="pro-card">
-<div class="pro-card-header">
-<div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0;">
-<span class="ticker-badge" style="flex-shrink: 0;">{target_etf} · {excg_tag}</span>
-<span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
-</div>
-</div>
-
-<div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
-<div class="summary-item">
-<div class="summary-label">현재가</div>
-<div class="summary-val">${display_curr:.2f}</div>
-</div>
-<div class="summary-item">
-<div class="summary-label">실시간 손익</div>
-<div class="summary-val">{detail_pnl_html}</div>
-</div>
-<div class="summary-item">
-<div class="summary-label">{target_etf} 평단</div>
-<div class="summary-val">${db_avg_price:.2f}</div>
-</div>
-<div class="summary-item">
-<div class="summary-label">{target_etf} 수량</div>
-<div class="summary-val">{db_shares:g}주</div>
-</div>
-<div class="summary-item">
-<div class="summary-label">총 투자 예산</div>
-<div class="summary-val">${total_budget_val:,.0f}</div>
-</div>
-<div class="summary-item">
-<div class="summary-label">소진된 예산</div>
-<div class="summary-val">${total_spent_val:,.0f}</div>
-</div>
-</div>
-
-<div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#94a3b8;">
-<span>회차 진행률 ({turn_cnt:g} / {splits_cnt}회)</span>
-<span style="color:#ffffff;">${total_spent_val:,.0f} / ${total_budget_val:,.0f}</span>
-</div>
-<div class="roop-progress-bg">
-<div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
-</div>
-</div>"""
-    st.markdown(detail_card_html, unsafe_allow_html=True)
-
-
-    # V4.0 주문 계산
-    turn = float(project_data.get("turn", 0.0))
-    splits = int(project_data.get("splits", 40))
-    total_budget = float(project_data.get("total_budget", 10000.0))
-    total_spent = float(project_data.get("total_spent", 0.0))
-
-    if turn >= splits:
-        daily_buy_budget = 0.0
-    else:
-        remaining_budget = total_budget - total_spent
-        daily_buy_budget = remaining_budget / (splits - turn)
-
-    buy1_price = db_avg_price if db_avg_price > 0 else current_price
-    buy1_qty = math.floor((daily_buy_budget * 0.5) / buy1_price) if buy1_price > 0 else 0
-    if buy1_qty == 0 and daily_buy_budget > 0 and buy1_price > 0:
-        buy1_qty = 1
-
-    buy2_price = current_price * 1.10
-    buy2_qty = math.floor((daily_buy_budget * 0.5) / buy2_price) if buy2_price > 0 else 0
-    if buy2_qty == 0 and daily_buy_budget > 0 and buy2_price > 0:
-        buy2_qty = 1
-
-    sell_price = db_avg_price * 1.10
-    sell_qty = db_shares
-
-    # 오늘의 주문 2열 카드
-    st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">오늘의 주문</div>', unsafe_allow_html=True)
-
-    ord_col1, ord_col2 = st.columns(2)
-
-    with ord_col1:
-        buy_html = f"""<div class="buy-box">
+        ord_col1, ord_col2 = st.columns(2)
+        with ord_col1:
+            buy_html = f"""<div class="buy-box">
 <div class="box-title-buy">매수 · LOC 2분할</div>
 <div class="order-row">
 <div>
-<span class="price-bold">${buy1_price:.2f}</span>
-<span class="qty-text"> × {buy1_qty}주</span>
+<span class="price-bold">${card_b1_price:.2f}</span>
+<span class="qty-text"> × {card_b1_qty}주</span>
 </div>
 <span class="tag-red">평단</span>
 </div>
 <div class="order-row">
 <div>
-<span class="price-bold">${buy2_price:.2f}</span>
-<span class="qty-text"> × {buy2_qty}주</span>
+<span class="price-bold">${card_b2_price:.2f}</span>
+<span class="qty-text"> × {card_b2_qty}주</span>
 </div>
 <span class="tag-red">고가</span>
 </div>
 </div>"""
-        st.markdown(buy_html, unsafe_allow_html=True)
+            st.markdown(buy_html, unsafe_allow_html=True)
 
-    with ord_col2:
-        sell_html = f"""<div class="sell-box">
+        with ord_col2:
+            sell_price = db_avg_price * 1.10
+            sell_html = f"""<div class="sell-box">
 <div class="box-title-sell">매도 · LOC / 지정가</div>
 <div class="order-row">
 <div>
 <span class="price-bold">${sell_price:.2f}</span>
-<span class="qty-text"> × {sell_qty:g}주</span>
+<span class="qty-text"> × {db_shares:g}주</span>
 </div>
 <span class="tag-purple">+10% 익절</span>
 </div>
 </div>"""
-        st.markdown(sell_html, unsafe_allow_html=True)
+            st.markdown(sell_html, unsafe_allow_html=True)
 
-    # 오늘의 주문 전송 섹션
+        approve_buy1 = True if card_b1_qty > 0 else False
+        approve_buy2 = True if card_b2_qty > 0 else False
+        approve_sell = True if db_shares > 0 else False
 
-    approve_buy1 = True if buy1_qty > 0 else False
-    approve_buy2 = True if buy2_qty > 0 else False
-    approve_sell = True if sell_qty > 0 else False
-
-    if st.button("오늘의 주문 전송", type="primary", use_container_width=True):
-        # 페이지 로드 시 호출된 잔고조회 API 등과 주문 전송 API가 겹쳐 
-        # '초당 거래건수 초과(TPS)' 에러가 발생하는 것을 방지하기 위해 잠시 대기
-        time.sleep(1.0)
-    
-        success_orders = 0
-        fail_orders = 0
-        messages = []
-    
-        order_data_log = [
-            {"구분": "절반 매수 (평단가 LOC)", "수량": buy1_qty, "단가": buy1_price},
-            {"구분": "절반 매수 (고가 LOC)", "수량": buy2_qty, "단가": buy2_price}
-        ]
-        if sell_qty > 0:
-            order_data_log.append({"구분": "익절 매도", "수량": sell_qty, "단가": sell_price})
-        
-        if approve_buy1 and buy1_qty > 0:
-            success, res = api.place_order(target_etf, buy1_qty, buy1_price, order_type="34")
-            if success:
-                success_orders += 1
-                messages.append(f"✅ 절반 매수 (평단가 LOC) 성공: {buy1_qty}주 @ ${buy1_price:.2f}")
-            else:
-                fail_orders += 1
-                messages.append(f"❌ 절반 매수 (평단가 LOC): {res}")
+        if st.button("오늘의 주문 전송", key=f"send_btn_{p_id}", type="primary", use_container_width=True):
             time.sleep(1.0)
+            success_orders = 0
+            fail_orders = 0
+            messages = []
+            order_data_log = [
+                {"구분": "절반 매수 (평단가 LOC)", "수량": card_b1_qty, "단가": card_b1_price},
+                {"구분": "절반 매수 (고가 LOC)", "수량": card_b2_qty, "단가": card_b2_price}
+            ]
+            if db_shares > 0:
+                order_data_log.append({"구분": "익절 매도", "수량": db_shares, "단가": sell_price})
             
-        if approve_buy2 and buy2_qty > 0:
-            success, res = api.place_order(target_etf, buy2_qty, buy2_price, order_type="34")
-            if success:
-                success_orders += 1
-                messages.append(f"✅ 절반 매수 (고가 LOC) 성공: {buy2_qty}주 @ ${buy2_price:.2f}")
-            else:
-                fail_orders += 1
-                messages.append(f"❌ 절반 매수 (고가 LOC): {res}")
-            time.sleep(1.0)
+            if approve_buy1 and card_b1_qty > 0:
+                success, res = api.place_order(ticker, card_b1_qty, card_b1_price, order_type="34")
+                if success:
+                    success_orders += 1
+                    messages.append(f"✅ 절반 매수 (평단가 LOC) 성공: {card_b1_qty}주 @ ${card_b1_price:.2f}")
+                else:
+                    fail_orders += 1
+                    messages.append(f"❌ 절반 매수 (평단가 LOC): {res}")
+                time.sleep(1.0)
+                
+            if approve_buy2 and card_b2_qty > 0:
+                success, res = api.place_order(ticker, card_b2_qty, card_b2_price, order_type="34")
+                if success:
+                    success_orders += 1
+                    messages.append(f"✅ 절반 매수 (고가 LOC) 성공: {card_b2_qty}주 @ ${card_b2_price:.2f}")
+                else:
+                    fail_orders += 1
+                    messages.append(f"❌ 절반 매수 (고가 LOC): {res}")
+                time.sleep(1.0)
+                
+            if approve_sell and db_shares > 0:
+                success, res = api.place_order(ticker, -db_shares, sell_price, order_type="00")
+                if success:
+                    success_orders += 1
+                    messages.append(f"✅ 익절 매도 성공: {db_shares}주 @ ${sell_price:.2f}")
+                else:
+                    fail_orders += 1
+                    messages.append(f"❌ 익절 매도: {res}")
+
+            for msg in messages:
+                st.write(msg)
             
-        if approve_sell and sell_qty > 0:
-            success, res = api.place_order(target_etf, -sell_qty, sell_price, order_type="00")
-            if success:
-                success_orders += 1
-                messages.append(f"✅ 익절 매도 성공: {sell_qty}주 @ ${sell_price:.2f}")
-            else:
-                fail_orders += 1
-                messages.append(f"❌ 익절 매도: {res}")
+            if success_orders > 0 and fail_orders == 0:
+                st.success(f"🎉 모든 주문이 성공적으로 전송되었습니다!")
+                log_entry = {
+                    "date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "env": api.env,
+                    "target": ticker,
+                    "turn_before": turn_cnt,
+                    "turn_after": turn_cnt,
+                    "orders": order_data_log
+                }
+                p.setdefault("history", []).append(log_entry)
+                state["projects"][p_id] = p
+                db_success, new_sha = db.update_state(state, sha)
+                if db_success:
+                    st.success("💾 깃허브 DB 업데이트 완료!")
+                    time.sleep(2)
+                    st.rerun()
 
-        for msg in messages:
-            st.write(msg)
+        # 계좌 잔고 및 DB 동기화 센터
+        st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">실 계좌 정보</div>', unsafe_allow_html=True)
         
-        if success_orders > 0 and fail_orders == 0:
-            st.success(f"🎉 모든 주문이 성공적으로 전송되었습니다!")
-            if approve_buy1 or approve_buy2:
-                pass # 주문 전송 시 임의로 turn을 더하지 않습니다. (4.0 정식 역산 적용)            
-            log_entry = {
-                "date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "env": api.env,
-                "target": target_etf,
-                "turn_before": turn,
-                "turn_after": project_data["turn"],
-                "orders": order_data_log
-            }
-            project_data.setdefault("history", []).append(log_entry)
-            state["projects"][active_id] = project_data
-        
-            db_success, new_sha = db.update_state(state, sha)
-            if db_success:
-                st.success("💾 깃허브 DB 업데이트 완료!")
-                time.sleep(2)
-                st.rerun()
+        target_holding = None
+        for hold in holdings:
+            if hold.get("pdno") == ticker or hold.get("pd_no") == ticker:
+                target_holding = hold
+                break
+        actual_shares = float(target_holding.get("allo_qty", target_holding.get("ccld_qty", 0.0))) if target_holding else 0.0
+        actual_avg_price = float(target_holding.get("pchs_avg_pric", 0.0)) if target_holding else 0.0
 
-    # 계좌 잔고 및 DB 동기화 센터
-    st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">실 계좌 정보</div>', unsafe_allow_html=True)
-    with st.container():
         sync_html = f'''
         <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
             <div class="summary-item">
                 <div class="summary-label">외화 예수금</div>
-                <div class="summary-val" style="font-size:1.0rem;">${usd_cash:,.2f}</div>
+                <div class="summary-val" style="font-size:1.0rem;">${usd_cash_val:,.2f}</div>
             </div>
             <div class="summary-item">
                 <div class="summary-label">원화 예수금</div>
-                <div class="summary-val" style="font-size:1.0rem;">{krw_cash:,.0f} 원</div>
+                <div class="summary-val" style="font-size:1.0rem;">{krw_cash_val:,.0f} 원</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">{target_etf} 평단</div>
+                <div class="summary-label">{ticker} 평단</div>
                 <div class="summary-val" style="font-size:1.0rem;">${actual_avg_price:.2f}</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">{target_etf} 수량</div>
+                <div class="summary-label">{ticker} 수량</div>
                 <div class="summary-val" style="font-size:1.0rem;">{actual_shares} 주</div>
             </div>
         </div>
         '''
         st.markdown(sync_html, unsafe_allow_html=True)
-    
-        if st.button(f"DB를 실제 계좌 기준({target_etf})으로 동기화", use_container_width=True):
-            project_data["total_shares"] = actual_shares
-            project_data["avg_price"] = actual_avg_price
-            project_data["total_spent"] = actual_shares * actual_avg_price
+
+        if st.button(f"DB를 실제 계좌 기준({ticker})으로 동기화", key=f"sync_btn_{p_id}", use_container_width=True):
+            p["total_shares"] = actual_shares
+            p["avg_price"] = actual_avg_price
+            p["total_spent"] = actual_shares * actual_avg_price
             
-            # 동기화 시 소진된 예산을 바탕으로 0.5회차 단위 역산 적용 (4.0 공식)
-            splits_val = float(project_data.get("splits", 40.0))
+            splits_val = float(p.get("splits", 40.0))
             if splits_val > 0:
-                base_daily_budget = project_data.get("total_budget", 0.0) / splits_val
+                base_daily_budget = p.get("total_budget", 0.0) / splits_val
                 if base_daily_budget > 0:
-                    project_data["turn"] = round((project_data["total_spent"] / base_daily_budget) * 2) / 2
+                    p["turn"] = round((p["total_spent"] / base_daily_budget) * 2) / 2
                 else:
-                    project_data["turn"] = 0.0
+                    p["turn"] = 0.0
             else:
-                project_data["turn"] = 0.0
+                p["turn"] = 0.0
             if actual_shares == 0:
-                project_data["turn"] = 0
+                p["turn"] = 0
             
-            state["projects"][active_id] = project_data
+            state["projects"][p_id] = p
             db.update_state(state, sha)
             st.success("동기화 완료!")
             st.rerun()
 
-
-
-
-
+        st.markdown('</div>', unsafe_allow_html=True) # pro-card closing tag
