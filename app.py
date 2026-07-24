@@ -350,7 +350,6 @@ st.markdown("""
         border-radius: 18px;
         padding: 12px 16px;
         margin-bottom: 12px;
-        min-height: 110px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -362,7 +361,6 @@ st.markdown("""
         border-radius: 18px;
         padding: 12px 16px;
         margin-bottom: 12px;
-        min-height: 110px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -387,6 +385,10 @@ st.markdown("""
         justify-content: space-between;
         align-items: center;
         margin-bottom: 10px;
+    }
+    
+    .order-row:last-child {
+        margin-bottom: 0px;
     }
     
     .price-bold {
