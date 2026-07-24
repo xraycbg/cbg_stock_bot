@@ -140,6 +140,10 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25) !important;
     }
     
+    div[data-testid="stElementContainer"]:has(.pro-card-marker) {
+        display: none !important;
+    }
+    
     div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"]:first-child .pro-card-marker) > div {
         gap: 0.5rem !important;
     }
