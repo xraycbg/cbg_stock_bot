@@ -129,10 +129,7 @@ st.markdown("""
         padding: 18px 20px;
         margin-bottom: 0px;
         box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
-    }
-
-
-    div[data-testid="stVerticalBlock"]:has(.pro-card-marker) {
+    div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"]:first-child .pro-card-marker) {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
         border: 2px solid #8b5cf6 !important;
         border-radius: 22px !important;
@@ -141,7 +138,7 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25) !important;
     }
     
-    div[data-testid="stVerticalBlock"]:has(.pro-card-marker) > div {
+    div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"]:first-child .pro-card-marker) > div {
         gap: 0.5rem !important;
     }
 
@@ -747,7 +744,8 @@ active_proj_count = len(projects_dict)
 total_allocated_budget = sum(float(p.get("total_budget", 10000.0)) for p in projects_dict.values())
 total_spent_budget = sum(float(p.get("total_spent", 0.0)) for p in projects_dict.values())
 
-with st.container(border=True):
+with st.container(border=False):
+    st.markdown('<div class="pro-card-marker" style="display:none;"></div>', unsafe_allow_html=True)
     summary_html = f'''
     <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 15px;">
         <div class="summary-item">
