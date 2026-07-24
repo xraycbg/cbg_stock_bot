@@ -132,7 +132,13 @@ st.markdown("""
     }
 
 
-    div[data-testid="stVerticalBlockBorderWrapper"] {
+    div[data-testid="stElementContainer"]:has(.pro-card-marker-before) {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    div[data-testid="stElementContainer"]:has(.pro-card-marker-before) + div[data-testid="stElementContainer"] > div {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
         border: 1.5px solid #8b5cf6 !important;
         border-radius: 22px !important;
@@ -142,7 +148,7 @@ st.markdown("""
         position: relative !important;
     }
     
-    div[data-testid="stVerticalBlockBorderWrapper"] > div {
+    div[data-testid="stElementContainer"]:has(.pro-card-marker-before) + div[data-testid="stElementContainer"] > div > div {
         gap: 0.5rem !important;
     }
 
@@ -932,6 +938,7 @@ if st.session_state.view_mode == "LIST":
 
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
+        st.markdown('<div class="pro-card-marker-before" style="display:none;"></div>', unsafe_allow_html=True)
         with st.container(border=True):
             hdr_col1, hdr_col2 = st.columns([1, 1], vertical_alignment="center")
             with hdr_col1:
