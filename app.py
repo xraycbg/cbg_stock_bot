@@ -992,7 +992,7 @@ with dash_tab:
 
 <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#94a3b8;">
 <span>회차 진행률 ({turn_cnt:g} / {splits_cnt}회)</span>
-<span style="color:#ffffff;">{prog_pct}% 완료</span>
+<span style="color:#ffffff;">${total_spent_val:,.0f} / ${total_budget_val:,.0f}</span>
 </div>
 <div class="roop-progress-bg">
 <div class="roop-progress-fill" style="width: {prog_pct}%;"></div>
