@@ -278,13 +278,7 @@ st.markdown("""
         pointer-events: auto !important;
     }
     
-    div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) {
-        position: relative;
-        z-index: 101 !important;
-        margin-bottom: -75px !important;
-    }
-
-    div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) button {
+    div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) button {
         background: rgba(239, 68, 68, 0.15) !important;
         color: #ef4444 !important;
         border: 1px solid rgba(239, 68, 68, 0.3) !important;
@@ -299,11 +293,10 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         box-shadow: none !important;
-        position: relative !important;
-        top: 24px !important;
+        margin-top: 8px !important;
     }
     
-    div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) button:hover {
+    div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) button:hover {
         background: rgba(239, 68, 68, 0.25) !important;
         border-color: rgba(239, 68, 68, 0.5) !important;
     }
@@ -413,13 +406,13 @@ st.markdown("""
     }
 
     button[kind="primary"] p {
-        font-size: 1.15rem !important;
+        font-size: 1.05rem !important;
         font-weight: 900 !important;
     }
 
     /* 클릭 가능한 제목 버튼용 (tertiary) */
     div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] {
-        font-size: 1.3rem !important;
+        font-size: 1.55rem !important;
         font-weight: 800 !important;
         color: #ffffff !important;
         background: transparent !important;
@@ -905,20 +898,14 @@ if st.session_state.view_mode == "LIST":
 
         with st.container(border=True):
             st.markdown('<div class="pro-card-marker"></div>', unsafe_allow_html=True)
-            del_col1, del_col2, del_col3 = st.columns([7.5, 1.5, 0.1])
-            with del_col2:
-                st.markdown('<div class="del-btn-marker"></div>', unsafe_allow_html=True)
+            
+            hdr_col1, hdr_col2, hdr_col3 = st.columns([7.5, 1.5, 0.1])
+            with hdr_col1:
+                st.markdown(f'<span class="ticker-badge" style="margin-bottom: 0px; margin-top: 6px; display: inline-block;">{ticker} · {excg_tag}</span>', unsafe_allow_html=True)
+            with hdr_col2:
+                st.markdown('<div class="del-btn-wrapper"></div>', unsafe_allow_html=True)
                 if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
                     confirm_delete_dialog(p_id, p['name'])
-
-            card_html = f"""<div style="padding:0;">
-    <div class="pro-card-header">
-    <div style="display: flex; flex-direction: column; align-items: flex-start; overflow: hidden; white-space: nowrap; min-width: 0; max-width: 75%;">
-    <span class="ticker-badge" style="flex-shrink: 0; margin-bottom: 6px;">{ticker} · {excg_tag}</span>
-    </div>
-    </div>
-    """
-            st.markdown(card_html, unsafe_allow_html=True)
         
             # 제목을 버튼(tertiary)으로 렌더링
             t_col1, t_col2 = st.columns([8, 2])
@@ -964,9 +951,6 @@ if st.session_state.view_mode == "LIST":
     """
             st.markdown(card_html2, unsafe_allow_html=True)
 
-            # 오늘의 주문 2열 카드
-            st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-top:16px; margin-bottom:12px;">오늘의 주문</div>', unsafe_allow_html=True)
-
             ord_col1, ord_col2 = st.columns(2)
             with ord_col1:
                 buy_html = f"""<div class="buy-box">
@@ -1006,7 +990,7 @@ if st.session_state.view_mode == "LIST":
             approve_buy2 = True if card_b2_qty > 0 else False
             approve_sell = True if db_shares > 0 else False
 
-            if st.button("오늘의 주문 전송", key=f"send_btn_{p_id}", type="primary", use_container_width=True):
+            if st.button("주문 전송", key=f"send_btn_{p_id}", type="primary", use_container_width=True):
                 time.sleep(1.0)
                 success_orders = 0
                 fail_orders = 0
