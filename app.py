@@ -270,6 +270,8 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         box-shadow: none !important;
+        position: relative !important;
+        top: 12px !important;
     }
     
     div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) button:hover {
