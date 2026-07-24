@@ -411,8 +411,8 @@ st.markdown("""
         font-weight: 900 !important;
     }
 
-    /* 클릭 가능한 제목 버튼용 (tertiary) */
-    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] {
+    /* 클릭 가능한 제목 버튼용 (structural sibling targeting) */
+    div[data-testid="stElementContainer"]:has(.title-btn-marker) + div[data-testid="stElementContainer"] button {
         background: transparent !important;
         border: none !important;
         padding: 4px 0 !important;
@@ -422,7 +422,7 @@ st.markdown("""
         justify-content: flex-start !important;
     }
     
-    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] * {
+    div[data-testid="stElementContainer"]:has(.title-btn-marker) + div[data-testid="stElementContainer"] button * {
         text-align: left !important;
         justify-content: flex-start !important;
         font-size: 2.2rem !important;
@@ -430,9 +430,10 @@ st.markdown("""
         color: #ffffff !important;
         margin: 0 !important;
         width: 100% !important;
+        line-height: 1.2 !important;
     }
     
-    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"]:hover {
+    div[data-testid="stElementContainer"]:has(.title-btn-marker) + div[data-testid="stElementContainer"] button:hover * {
         color: #a5b4fc !important;
     }
 </style>
@@ -917,8 +918,8 @@ if st.session_state.view_mode == "LIST":
                 if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
                     confirm_delete_dialog(p_id, p['name'])
         
-            # 제목을 버튼(tertiary)으로 렌더링
-            st.markdown('<div style="margin-top: -8px;"></div>', unsafe_allow_html=True)
+            # 제목을 버튼으로 렌더링 (CSS 타겟팅을 위한 마커 삽입)
+            st.markdown('<div class="title-btn-marker" style="margin-top:-8px;"></div>', unsafe_allow_html=True)
             if st.button(p['name'], key=f"edit_title_{p_id}", type="tertiary", use_container_width=True, help="클릭하여 제목 수정"):
                 edit_title_dialog(p_id, p['name'])
 
