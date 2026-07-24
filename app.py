@@ -136,7 +136,7 @@ st.markdown("""
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 22px !important;
-        padding: 18px 20px !important;
+        padding: 14px 20px 18px 20px !important;
         margin-bottom: 24px !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
     }
@@ -409,6 +409,13 @@ st.markdown("""
     button[kind="primary"] p {
         font-size: 1.05rem !important;
         font-weight: 900 !important;
+    }
+
+    /* 마커 컨테이너 자체를 숨겨서 여백 제거 */
+    div[data-testid="stElementContainer"]:has(.title-btn-marker) {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     /* 클릭 가능한 제목 버튼용 (structural sibling targeting) */
@@ -910,8 +917,6 @@ if st.session_state.view_mode == "LIST":
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
         with st.container(border=True):
-            st.markdown('<div class="pro-card-marker"></div>', unsafe_allow_html=True)
-            
             hdr_col1, hdr_col2, hdr_col3 = st.columns([7.5, 1.5, 0.1], vertical_alignment="center")
             with hdr_col1:
                 st.markdown(f'<div style="height: 24px; display: flex; align-items: center;"><span class="ticker-badge" style="display: inline-block; margin: 0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
