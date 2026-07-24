@@ -294,7 +294,7 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         box-shadow: none !important;
-        margin-top: 16px !important;
+        margin-top: 0px !important;
     }
     
     div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) button:hover {
@@ -413,26 +413,23 @@ st.markdown("""
 
     /* 클릭 가능한 제목 버튼용 (tertiary) */
     div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] {
-        font-size: 1.55rem !important;
-        font-weight: 800 !important;
-        color: #ffffff !important;
         background: transparent !important;
         border: none !important;
-        padding: 0 !important;
-        justify-content: flex-start !important;
+        padding: 4px 0 !important;
         box-shadow: none !important;
+        display: flex !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
     }
     
-    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] div[data-testid="stMarkdownContainer"],
-    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] p {
+    div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] * {
         text-align: left !important;
-        width: 100% !important;
-        margin: 0 !important;
-        display: flex !important;
         justify-content: flex-start !important;
-        font-size: 1.65rem !important;
-        font-weight: 800 !important;
+        font-size: 1.85rem !important;
+        font-weight: 900 !important;
         color: #ffffff !important;
+        margin: 0 !important;
+        width: 100% !important;
     }
     
     div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"]:hover {
