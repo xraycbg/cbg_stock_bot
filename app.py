@@ -425,7 +425,7 @@ st.markdown("""
     div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"] * {
         text-align: left !important;
         justify-content: flex-start !important;
-        font-size: 1.85rem !important;
+        font-size: 2.2rem !important;
         font-weight: 900 !important;
         color: #ffffff !important;
         margin: 0 !important;
@@ -909,9 +909,9 @@ if st.session_state.view_mode == "LIST":
         with st.container(border=True):
             st.markdown('<div class="pro-card-marker"></div>', unsafe_allow_html=True)
             
-            hdr_col1, hdr_col2, hdr_col3 = st.columns([7.5, 1.5, 0.1])
+            hdr_col1, hdr_col2, hdr_col3 = st.columns([7.5, 1.5, 0.1], vertical_alignment="center")
             with hdr_col1:
-                st.markdown(f'<span class="ticker-badge" style="margin-bottom: 0px; margin-top: 6px; display: inline-block;">{ticker} · {excg_tag}</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="ticker-badge" style="display: inline-block;">{ticker} · {excg_tag}</span>', unsafe_allow_html=True)
             with hdr_col2:
                 st.markdown('<div class="del-btn-wrapper"></div>', unsafe_allow_html=True)
                 if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
