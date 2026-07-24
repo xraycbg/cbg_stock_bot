@@ -15,6 +15,22 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+@st.dialog("프로젝트 삭제")
+def confirm_delete_dialog(p_id, p_name):
+    st.markdown(f"**{p_name}** 프로젝트를 정말 삭제하시겠습니까?<br><span style='font-size:0.85rem; color:#94a3b8;'>삭제 시 복구할 수 없습니다.</span>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    d_col1, d_col2 = st.columns(2)
+    with d_col1:
+        if st.button("확인", use_container_width=True, type="primary"):
+            state, sha = db.get_state()
+            if state and p_id in state["projects"]:
+                del state["projects"][p_id]
+                db.update_state(state, sha)
+            st.rerun()
+    with d_col2:
+        if st.button("취소", use_container_width=True):
+            st.rerun()
+
 # ------------------------------------------
 # 🎨 Next-Gen Pro Glassmorphism 디자인 시스템
 # ------------------------------------------
@@ -223,14 +239,19 @@ st.markdown("""
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) + div[data-testid="stElementContainer"] {
         position: relative !important;
-        margin-top: -248px !important; /* Pro 카드 높이에 밀착 */
+        margin-top: -188px !important; /* 상단 60px(삭제버튼 영역) 터치 제외 */
         margin-bottom: 20px !important;
         width: 100% !important;
-        height: 232px !important;
+        height: 172px !important;
         z-index: 99 !important;
         border: none !important;
         background: transparent !important;
         pointer-events: auto !important;
+    }
+    
+    div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) {
+        position: relative;
+        z-index: 101 !important;
     }
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
@@ -813,17 +834,15 @@ if st.session_state.view_mode == "LIST":
 
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
-        del_col1, del_col2 = st.columns([5, 1])
+        del_col1, del_col2, del_col3 = st.columns([7, 2, 0.5])
         with del_col2:
-            with st.popover("삭제", use_container_width=True):
-                if st.button("확인", key=f"del_{p_id}", use_container_width=True):
-                    del state["projects"][p_id]
-                    db.update_state(state, sha)
-                    st.rerun()
+            st.markdown('<div class="del-btn-marker"></div>', unsafe_allow_html=True)
+            if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
+                confirm_delete_dialog(p_id, p['name'])
 
-        card_html = f"""<div class="pro-card list-card-touch">
+        card_html = f"""<div class="pro-card list-card-touch" style="margin-top: -55px; padding-top: 25px;">
 <div class="pro-card-header">
-<div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0;">
+<div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0; max-width: 75%;">
 <span class="ticker-badge" style="flex-shrink: 0;">{ticker} · {excg_tag}</span>
 <span class="pro-card-title" style="margin-left:8px;">{p['name']}</span>
 </div>
