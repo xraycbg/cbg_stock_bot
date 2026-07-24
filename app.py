@@ -255,6 +255,28 @@ st.markdown("""
         margin-bottom: -75px !important;
     }
 
+    div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) button {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #ef4444 !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        border-radius: 20px !important;
+        font-size: 0.75rem !important;
+        font-weight: 800 !important;
+        padding: 2px 10px !important;
+        min-height: 0 !important;
+        height: 24px !important;
+        line-height: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: none !important;
+    }
+    
+    div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) button:hover {
+        background: rgba(239, 68, 68, 0.25) !important;
+        border-color: rgba(239, 68, 68, 0.5) !important;
+    }
+
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
         width: 100% !important;
         height: 232px !important;
@@ -835,7 +857,7 @@ if st.session_state.view_mode == "LIST":
 
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
-        del_col1, del_col2, del_col3 = st.columns([7.5, 2, 0.1])
+        del_col1, del_col2, del_col3 = st.columns([7.5, 1.5, 0.1])
         with del_col2:
             st.markdown('<div class="del-btn-marker"></div>', unsafe_allow_html=True)
             if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
@@ -843,9 +865,9 @@ if st.session_state.view_mode == "LIST":
 
         card_html = f"""<div class="pro-card list-card-touch">
 <div class="pro-card-header">
-<div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0; max-width: 75%;">
-<span class="ticker-badge" style="flex-shrink: 0;">{ticker} · {excg_tag}</span>
-<span class="pro-card-title" style="margin-left:8px;">{p['name']}</span>
+<div style="display: flex; flex-direction: column; align-items: flex-start; overflow: hidden; white-space: nowrap; min-width: 0; max-width: 75%;">
+<span class="ticker-badge" style="flex-shrink: 0; margin-bottom: 6px;">{ticker} · {excg_tag}</span>
+<span class="pro-card-title" style="margin-left:0px;">{p['name']}</span>
 </div>
 </div>
 
