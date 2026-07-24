@@ -647,6 +647,12 @@ summary_html = f'''
 '''
 st.markdown(summary_html, unsafe_allow_html=True)
 
+if st.button("🔄 증권사 계좌정보 강제 갱신", use_container_width=True):
+    get_cached_balance.clear() # 잔고 캐시 날리기
+    st.session_state.pop("krw_usd_rate", None) # 환율 캐시 날리기
+    st.session_state.ticker_price_cache = {} # 현재가 캐시 날리기
+    st.rerun() # 화면 즉시 새로고침
+
 # ==========================================
 # ➕ 새 프로젝트 생성 화면
 # ==========================================
