@@ -564,6 +564,25 @@ with st.sidebar:
                     st.error(f"❌ 발송 실패: {resp.text}")
             except Exception as e:
                 st.error(f"❌ 발송 에러: {e}")
+                
+    st.markdown("---")
+    st.markdown("### 🧪 모의투자 주문 테스트")
+    if st.button("🛒 SOXL 1주 매수 테스트", use_container_width=True):
+        try:
+            if api.env == "mock":
+                price = api.get_current_price("SOXL")
+                if price > 0:
+                    test_price = price * 0.5
+                    resp = api.place_order("SOXL", 1, test_price, order_type="34")
+                    st.success(f"✅ SOXL 1주 주문 테스트 전송 완료! (가격: ${test_price:.2f})\n\n스마트폰 앱 '모의투자 - 해외주식 - 예약/미체결 내역'을 확인해 보세요.")
+                    with st.expander("API 응답 로그"):
+                        st.json(resp)
+                else:
+                    st.error("❌ SOXL 현재가를 조회할 수 없어 가격을 계산하지 못했습니다.")
+            else:
+                st.error("❌ 안전을 위해 이 버튼은 '모의투자(mock)' 환경에서만 동작합니다!")
+        except Exception as e:
+            st.error(f"❌ 주문 테스트 에러 발생: {e}")
 
 # ==========================================
 # 🔝 상단 Header Bar (Pro 타이틀 & + 새 프로젝트)
