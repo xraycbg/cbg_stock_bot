@@ -71,19 +71,21 @@ st.markdown("""
     .summary-item {
         background: rgba(15, 23, 42, 0.6);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 14px;
-        padding: 10px 14px;
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .summary-label {
-        font-size: 0.73rem;
-        font-weight: 700;
+        font-size: 0.8rem;
+        font-weight: 600;
         color: #94a3b8;
-        margin-bottom: 4px;
     }
 
     .summary-val {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 800;
         color: #ffffff;
     }
