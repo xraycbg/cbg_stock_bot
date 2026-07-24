@@ -592,25 +592,15 @@ with st.sidebar:
             st.error(f"❌ 주문 테스트 에러 발생: {e}")
 
 # ==========================================
-# 🔝 상단 Header Bar (Pro 타이틀 & + 새 프로젝트)
+# 🔝 상단 Header Bar (Pro 타이틀)
 # ==========================================
-hdr_col1, hdr_col2 = st.columns([2.5, 2.5])
-
-with hdr_col1:
-    env_badge = "모의투자" if api.env == "mock" else "실전투자"
-    st.markdown(f'''
-    <div>
-        <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">cbg 무매40</span>
-        <span style="font-size:0.75rem; font-weight:800; background:rgba(99,102,241,0.25); color:#a5b4fc; padding:2px 8px; border-radius:12px; margin-left:6px;">{env_badge}</span>
-    </div>
-    ''', unsafe_allow_html=True)
-
-with hdr_col2:
-    if st.button("➕ 새 프로젝트", key="top_new_cycle_btn", use_container_width=True):
-        st.session_state.view_mode = "CREATE"
-        st.rerun()
-
-st.markdown("<br>", unsafe_allow_html=True)
+env_badge = "모의투자" if api.env == "mock" else "실전투자"
+st.markdown(f'''
+<div style="margin-bottom: 20px;">
+    <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">cbg 무매40</span>
+    <span style="font-size:0.75rem; font-weight:800; background:rgba(99,102,241,0.25); color:#a5b4fc; padding:2px 8px; border-radius:12px; margin-left:6px;">{env_badge}</span>
+</div>
+''', unsafe_allow_html=True)
 
 projects_dict = state.get("projects", {})
 
@@ -764,11 +754,11 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
 # 📋 VIEW MODE 1: 프로젝트 목록 (Pro Card LIST)
 # ==========================================
 if st.session_state.view_mode == "LIST":
-    st.markdown('''
-    <div style="text-align:right; margin-bottom:14px;">
-        <span style="font-weight:600; color:#64748b; font-size:0.85rem;">총 {0}개 운용 중</span>
-    </div>
-    '''.format(len(projects_dict)), unsafe_allow_html=True)
+    list_hdr_col1, list_hdr_col2 = st.columns([3, 1])
+    with list_hdr_col2:
+        if st.button("➕ 추가", key="list_add_project_btn", use_container_width=True):
+            st.session_state.view_mode = "CREATE"
+            st.rerun()
     
     p_items = list(projects_dict.values())
     for p in p_items:
