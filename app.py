@@ -959,10 +959,12 @@ with dash_tab:
     else:
         detail_pnl_html = '0.00%'
 
+    excg_tag = "AMEX" if target_etf == "SOXL" else "NASD"
+
     detail_card_html = f"""<div class="pro-card">
 <div class="pro-card-header">
 <div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0;">
-<span class="ticker-badge" style="flex-shrink: 0;">{target_etf} 대시보드</span>
+<span class="ticker-badge" style="flex-shrink: 0;">{target_etf} · {excg_tag}</span>
 <span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
 </div>
 <span class="status-badge-active">진행중</span>
