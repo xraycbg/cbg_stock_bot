@@ -882,7 +882,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
 if st.session_state.view_mode == "LIST":
     list_hdr_col1, list_hdr_col2 = st.columns([3, 1])
     with list_hdr_col2:
-        if st.button("➕ 프로젝트 추가", key="list_add_project_btn", use_container_width=True):
+        if st.button("➕ 프로젝트 추가", key="list_add_project_btn"):
             st.session_state.view_mode = "CREATE"
             st.rerun()
     
