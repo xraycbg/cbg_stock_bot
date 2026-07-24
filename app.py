@@ -108,10 +108,13 @@ st.markdown("""
     }
 
     .pro-card-title {
-        font-size: 1.3rem;
+        font-size: 1.15rem;
         font-weight: 800;
         color: #ffffff;
         letter-spacing: -0.3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .ticker-badge {
@@ -132,6 +135,8 @@ st.markdown("""
         padding: 3px 10px;
         border-radius: 20px;
         border: 1px solid rgba(16, 185, 129, 0.3);
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .pro-metrics-grid {
@@ -649,7 +654,7 @@ summary_html = f'''
 '''
 st.markdown(summary_html, unsafe_allow_html=True)
 
-if st.button("🔄 증권사 계좌정보 강제 갱신", use_container_width=True):
+if st.button("증권사 계좌정보 강제 갱신", use_container_width=True):
     get_cached_balance.clear() # 잔고 캐시 날리기
     st.session_state.pop("krw_usd_rate", None) # 환율 캐시 날리기
     st.session_state.ticker_price_cache = {} # 현재가 캐시 날리기
@@ -818,8 +823,8 @@ if st.session_state.view_mode == "LIST":
 
         card_html = f"""<div class="pro-card list-card-touch">
 <div class="pro-card-header">
-<div>
-<span class="ticker-badge">{ticker} · {excg_tag}</span>
+<div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0;">
+<span class="ticker-badge" style="flex-shrink: 0;">{ticker} · {excg_tag}</span>
 <span class="pro-card-title" style="margin-left:8px;">{p['name']}</span>
 </div>
 <span class="status-badge-active">진행중</span>
@@ -956,8 +961,8 @@ with dash_tab:
 
     detail_card_html = f"""<div class="pro-card">
 <div class="pro-card-header">
-<div>
-<span class="ticker-badge">{target_etf} 대시보드</span>
+<div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0;">
+<span class="ticker-badge" style="flex-shrink: 0;">{target_etf} 대시보드</span>
 <span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
 </div>
 <span class="status-badge-active">진행중</span>
