@@ -827,7 +827,6 @@ if st.session_state.view_mode == "LIST":
 <span class="ticker-badge" style="flex-shrink: 0;">{ticker} · {excg_tag}</span>
 <span class="pro-card-title" style="margin-left:8px;">{p['name']}</span>
 </div>
-<span class="status-badge-active">진행중</span>
 </div>
 
 <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
@@ -967,7 +966,6 @@ with dash_tab:
 <span class="ticker-badge" style="flex-shrink: 0;">{target_etf} · {excg_tag}</span>
 <span class="pro-card-title" style="margin-left:8px;">{project_data['name']}</span>
 </div>
-<span class="status-badge-active">진행중</span>
 </div>
 
 <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
