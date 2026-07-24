@@ -814,7 +814,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
                 }
                 state["active_project_id"] = new_id
                 _, sha = db.update_state(state, sha)
-                st.session_state.view_mode = "DETAIL"
+                st.session_state.view_mode = "LIST"
                 st.success(f"🎉 [{final_name}] 프로젝트가 생성되었습니다!")
                 st.rerun()
 
