@@ -271,7 +271,7 @@ st.markdown("""
         justify-content: center !important;
         box-shadow: none !important;
         position: relative !important;
-        top: 12px !important;
+        top: -6px !important;
     }
     
     div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) button:hover {
@@ -697,7 +697,6 @@ with st.container(border=True):
             st.session_state.ticker_price_cache = {} # 현재가 캐시 날리기
             st.rerun() # 화면 즉시 새로고침
 
-st.markdown("---")
 # ==========================================
 # ➕ 새 프로젝트 생성 화면
 # ==========================================
