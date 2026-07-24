@@ -814,14 +814,33 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
         min_krw = min_usd * exch_rate
         min_budget_str = f" (최소 권장: ${min_usd:,.0f} / 약 {min_krw:,.0f}원)" if curr_price > 0 else ""
         
+        if "usd_widget" not in st.session_state:
+            st.session_state.usd_widget = "10,000"
+        if "krw_widget" not in st.session_state:
+            st.session_state.krw_widget = "14,000,000"
+            
+        def format_usd():
+            val = st.session_state.usd_widget
+            clean_val = ''.join(filter(str.isdigit, val))
+            st.session_state.usd_widget = f"{int(clean_val):,}" if clean_val else "0"
+            
+        def format_krw():
+            val = st.session_state.krw_widget
+            clean_val = ''.join(filter(str.isdigit, val))
+            st.session_state.krw_widget = f"{int(clean_val):,}" if clean_val else "0"
+        
         # 입력 폼 밖에서 동적 UI 처리 (st.form 내부에서는 실시간 텍스트 업데이트가 제한됨)
         input_type = st.radio("예산 입력 단위 선택", ["USD (달러)", "KRW (원화)"], horizontal=True)
         if input_type == "USD (달러)":
-            new_p_budget_usd = st.number_input(f"총 투자 예산 (USD){min_budget_str}", min_value=100, value=10000, step=100)
+            st.text_input(f"총 투자 예산 (USD){min_budget_str}", key="usd_widget", on_change=format_usd)
+            raw_usd = st.session_state.usd_widget
+            new_p_budget_usd = int(''.join(filter(str.isdigit, raw_usd))) if any(c.isdigit() for c in raw_usd) else 0
             st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 {new_p_budget_usd * exch_rate:,.0f}원**이 소모됩니다.")
             final_budget_usd = new_p_budget_usd
         else:
-            new_p_budget_krw = st.number_input(f"총 투자 예산 (KRW){min_budget_str}", min_value=100000, value=14000000, step=100000)
+            st.text_input(f"총 투자 예산 (KRW){min_budget_str}", key="krw_widget", on_change=format_krw)
+            raw_krw = st.session_state.krw_widget
+            new_p_budget_krw = int(''.join(filter(str.isdigit, raw_krw))) if any(c.isdigit() for c in raw_krw) else 0
             converted_usd = round(new_p_budget_krw / exch_rate)
             st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 ${converted_usd:,.0f}**로 설정됩니다.")
             final_budget_usd = converted_usd
