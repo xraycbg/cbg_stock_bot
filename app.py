@@ -252,6 +252,7 @@ st.markdown("""
     div[data-testid="stHorizontalBlock"]:has(.del-btn-marker) {
         position: relative;
         z-index: 101 !important;
+        margin-bottom: -65px !important;
     }
 
     div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"]:has(div.list-card-touch) + div[data-testid="stElementContainer"] div[data-testid="stButton"] {
@@ -379,11 +380,11 @@ if "kis_api" not in st.session_state:
 db = st.session_state.github_db
 api = st.session_state.kis_api
 
-@st.cache_data(ttl=10)
+@st.cache_data(ttl=10, show_spinner=False)
 def get_cached_price(_api, env_key, ticker):
     return _api.get_current_price(ticker)
 
-@st.cache_data(ttl=10)
+@st.cache_data(ttl=10, show_spinner=False)
 def get_cached_balance(_api, env_key):
     return _api.get_balance()
 
@@ -840,7 +841,7 @@ if st.session_state.view_mode == "LIST":
             if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
                 confirm_delete_dialog(p_id, p['name'])
 
-        card_html = f"""<div class="pro-card list-card-touch" style="margin-top: -55px; padding-top: 25px;">
+        card_html = f"""<div class="pro-card list-card-touch">
 <div class="pro-card-header">
 <div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; min-width: 0; max-width: 75%;">
 <span class="ticker-badge" style="flex-shrink: 0;">{ticker} · {excg_tag}</span>
