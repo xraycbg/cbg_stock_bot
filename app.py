@@ -280,8 +280,21 @@ st.markdown("""
         pointer-events: auto !important;
     }
     
-    /* 삭제 버튼: stHorizontalBlock 구문으로 롤백 */
-    div[data-testid="stHorizontalBlock"] button {
+    /* 삭제 버튼 컬럼 자체를 우측 정렬 */
+    div[data-testid="column"]:has(.del-col-marker) > div[data-testid="stVerticalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    div[data-testid="stElementContainer"]:has(.del-col-marker) {
+        display: none !important;
+    }
+
+    /* 삭제 버튼 스타일링 */
+    div[data-testid="column"]:has(.del-col-marker) button {
         background: rgba(239, 68, 68, 0.15) !important;
         color: #ef4444 !important;
         border: 1px solid rgba(239, 68, 68, 0.3) !important;
@@ -297,9 +310,10 @@ st.markdown("""
         justify-content: center !important;
         box-shadow: none !important;
         margin: 0 !important;
+        width: auto !important;
     }
     
-    div[data-testid="stHorizontalBlock"] button:hover {
+    div[data-testid="column"]:has(.del-col-marker) button:hover {
         background: rgba(239, 68, 68, 0.25) !important;
         border-color: rgba(239, 68, 68, 0.5) !important;
     }
@@ -918,11 +932,12 @@ if st.session_state.view_mode == "LIST":
         excg_tag = "AMEX" if ticker == "SOXL" else "NASD"
 
         with st.container(border=True):
-            hdr_col1, hdr_col2, _ = st.columns([8.5, 1.5, 0.1], vertical_alignment="center")
+            hdr_col1, hdr_col2 = st.columns([1, 1], vertical_alignment="center")
             with hdr_col1:
                 st.markdown(f'<div style="height: 24px; display: flex; align-items: center;"><span class="ticker-badge" style="margin:0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
             with hdr_col2:
-                if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
+                st.markdown('<div class="del-col-marker" style="display:none;"></div>', unsafe_allow_html=True)
+                if st.button("삭제", key=f"del_btn_{p_id}"):
                     confirm_delete_dialog(p_id, p['name'])
         
             # 제목을 버튼으로 렌더링 (CSS 타겟팅을 위한 마커 삽입)
