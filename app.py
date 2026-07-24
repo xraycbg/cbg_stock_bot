@@ -124,7 +124,7 @@ st.markdown("""
     /* 📋 Pro 프로젝트 대시보드 카드 */
     .pro-card {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(139, 92, 246, 0.3);
         border-radius: 22px;
         padding: 18px 20px;
         margin-bottom: 0px;
@@ -134,7 +134,7 @@ st.markdown("""
 
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background: linear-gradient(145deg, #111827 0%, #0f172a 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(139, 92, 246, 0.3) !important;
         border-radius: 22px !important;
         padding: 14px 20px 18px 20px !important;
         margin-bottom: 24px !important;
