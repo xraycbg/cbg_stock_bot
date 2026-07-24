@@ -294,7 +294,7 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         box-shadow: none !important;
-        margin-top: 24px !important;
+        margin-top: 16px !important;
     }
     
     div[data-testid="stHorizontalBlock"]:has(.del-btn-wrapper) button:hover {
@@ -330,9 +330,9 @@ st.markdown("""
         background: #251217;
         border: 1px solid rgba(239, 68, 68, 0.25);
         border-radius: 18px;
-        padding: 16px;
+        padding: 12px 16px;
         margin-bottom: 12px;
-        min-height: 130px;
+        min-height: 110px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -342,9 +342,9 @@ st.markdown("""
         background: #121933;
         border: 1px solid rgba(99, 102, 241, 0.25);
         border-radius: 18px;
-        padding: 16px;
+        padding: 12px 16px;
         margin-bottom: 12px;
-        min-height: 130px;
+        min-height: 110px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -430,6 +430,9 @@ st.markdown("""
         margin: 0 !important;
         display: flex !important;
         justify-content: flex-start !important;
+        font-size: 1.65rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
     }
     
     div[data-testid="stVerticalBlockBorderWrapper"] button[kind="tertiary"]:hover {
@@ -917,14 +920,10 @@ if st.session_state.view_mode == "LIST":
                 if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
                     confirm_delete_dialog(p_id, p['name'])
         
-            # 제목 렌더링 (HTML H3 + 편집 버튼)
-            t_col1, t_col2 = st.columns([8.5, 1.5])
-            with t_col1:
-                st.markdown(f'<h3 style="margin:0; padding:0; padding-top:8px; font-size:1.65rem; font-weight:800; color:#fff; text-align:left;">{p["name"]}</h3>', unsafe_allow_html=True)
-            with t_col2:
-                st.markdown('<div style="margin-top: 12px;"></div>', unsafe_allow_html=True)
-                if st.button("✏️ 편집", key=f"edit_title_{p_id}", use_container_width=True):
-                    edit_title_dialog(p_id, p['name'])
+            # 제목을 버튼(tertiary)으로 렌더링
+            st.markdown('<div style="margin-top: -8px;"></div>', unsafe_allow_html=True)
+            if st.button(p['name'], key=f"edit_title_{p_id}", type="tertiary", use_container_width=True, help="클릭하여 제목 수정"):
+                edit_title_dialog(p_id, p['name'])
 
             card_html2 = f"""
     <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
