@@ -702,15 +702,19 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
             converted_usd = round(new_p_budget_krw / exch_rate)
             st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 ${converted_usd:,.0f}**로 설정됩니다.")
             final_budget_usd = converted_usd
+            
+        is_budget_valid = (final_budget_usd >= min_usd)
+        if not is_budget_valid:
+            st.error(f"⚠️ 예산 부족: 최소 권장 예산(${min_usd:,.0f} / 약 {min_krw:,.0f}원) 이상을 입력하셔야 정상적으로 봇이 동작합니다.")
     
         with st.form("create_proj_form", border=False):
             new_p_name = st.text_input("프로젝트 이름", value=recommended_name, placeholder=f"예: {recommended_name}")
             
-            create_submit = st.form_submit_button("새 프로젝트 생성 및 매매 시작", type="primary", use_container_width=True)
+            create_submit = st.form_submit_button("새 프로젝트 생성 및 매매 시작", type="primary", use_container_width=True, disabled=not is_budget_valid)
             
             if create_submit:
-                if final_budget_usd < min_usd:
-                    st.error(f"⚠️ 총 투자 예산이 너무 적습니다! 최소 권장 예산(${min_usd:,.0f} / 약 {min_krw:,.0f}원) 이상을 입력하셔야 봇이 정상적으로 분할 매수를 진행할 수 있습니다.")
+                # 버튼 비활성화로 막았지만, 2중 안전장치 유지
+                if not is_budget_valid:
                     st.stop()
                     
                 final_name = new_p_name.strip() if new_p_name.strip() else recommended_name
