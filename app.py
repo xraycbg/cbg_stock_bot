@@ -667,12 +667,38 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
                 
         curr_price = st.session_state.ticker_price_cache.get(new_p_ticker, 0.0)
         
+        # 환율 캐싱 로직
+        if "krw_usd_rate" not in st.session_state:
+            try:
+                import requests
+                res = requests.get("https://query1.finance.yahoo.com/v8/finance/chart/KRW=X", headers={"User-Agent": "Mozilla/5.0"}, timeout=3)
+                rate = res.json()["chart"]["result"][0]["meta"]["regularMarketPrice"]
+                st.session_state.krw_usd_rate = float(rate)
+            except:
+                st.session_state.krw_usd_rate = 1400.0 # 조회 실패 시 기본값
+        
+        exch_rate = st.session_state.krw_usd_rate
+
+        
         new_p_splits = st.number_input("분할 회차 (Splits)", min_value=10, max_value=60, value=40)
-        min_budget_str = f" (최소 권장: {curr_price * 2 * new_p_splits:,.2f} USD - {new_p_splits}회차 기준)" if curr_price > 0 else ""
+        min_usd = curr_price * 2 * new_p_splits
+        min_krw = min_usd * exch_rate
+        min_budget_str = f" (최소 권장: ${min_usd:,.0f} / 약 {min_krw:,.0f}원)" if curr_price > 0 else ""
+        
+        # 입력 폼 밖에서 동적 UI 처리 (st.form 내부에서는 실시간 텍스트 업데이트가 제한됨)
+        input_type = st.radio("예산 입력 단위 선택", ["USD (달러)", "KRW (원화)"], horizontal=True)
+        if input_type == "USD (달러)":
+            new_p_budget_usd = st.number_input(f"총 투자 예산 (USD){min_budget_str}", min_value=100.0, value=10000.0, step=500.0)
+            st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 {new_p_budget_usd * exch_rate:,.0f}원**이 소모됩니다.")
+            final_budget_usd = new_p_budget_usd
+        else:
+            new_p_budget_krw = st.number_input(f"총 투자 예산 (KRW){min_budget_str}", min_value=100000.0, value=14000000.0, step=1000000.0)
+            converted_usd = new_p_budget_krw / exch_rate
+            st.caption(f"💡 현재 환율(약 {exch_rate:,.1f}원) 기준, **약 ${converted_usd:,.2f}**로 설정됩니다.")
+            final_budget_usd = converted_usd
     
         with st.form("create_proj_form", border=False):
             new_p_name = st.text_input("프로젝트 이름", value=recommended_name, placeholder=f"예: {recommended_name}")
-            new_p_budget = st.number_input(f"총 투자 예산 (USD){min_budget_str}", min_value=100.0, value=10000.0, step=500.0)
             
             create_submit = st.form_submit_button("새 프로젝트 생성 및 매매 시작", type="primary", use_container_width=True)
             
@@ -685,7 +711,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
                     "id": new_id,
                     "name": final_name,
                     "target_etf": new_p_ticker,
-                    "total_budget": float(new_p_budget),
+                    "total_budget": float(final_budget_usd),
                     "splits": int(new_p_splits),
                     "turn": 0,
                     "avg_price": 0.0,
