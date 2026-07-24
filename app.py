@@ -628,9 +628,9 @@ active_proj_count = len(projects_dict)
 total_allocated_budget = sum(float(p.get("total_budget", 10000.0)) for p in projects_dict.values())
 total_spent_budget = sum(float(p.get("total_spent", 0.0)) for p in projects_dict.values())
 
-summary_html = f'''
-<div class="summary-card" style="margin-bottom: 0px;">
-    <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr);">
+with st.container(border=True):
+    summary_html = f'''
+    <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 15px;">
         <div class="summary-item">
             <div class="summary-label">외화 예수금</div>
             <div class="summary-val">${usd_cash_val:,.2f}</div>
@@ -640,15 +640,16 @@ summary_html = f'''
             <div class="summary-val">{krw_cash_val:,.0f} 원</div>
         </div>
     </div>
-</div>
-'''
-st.markdown(summary_html, unsafe_allow_html=True)
-
-if st.button("증권사 계좌정보 강제 갱신", use_container_width=True):
-    get_cached_balance.clear() # 잔고 캐시 날리기
-    st.session_state.pop("krw_usd_rate", None) # 환율 캐시 날리기
-    st.session_state.ticker_price_cache = {} # 현재가 캐시 날리기
-    st.rerun() # 화면 즉시 새로고침
+    '''
+    st.markdown(summary_html, unsafe_allow_html=True)
+    
+    b_col1, b_col2, b_col3 = st.columns([1, 4, 1])
+    with b_col2:
+        if st.button("증권사 계좌정보 강제 갱신", use_container_width=True):
+            get_cached_balance.clear() # 잔고 캐시 날리기
+            st.session_state.pop("krw_usd_rate", None) # 환율 캐시 날리기
+            st.session_state.ticker_price_cache = {} # 현재가 캐시 날리기
+            st.rerun() # 화면 즉시 새로고침
 
 st.markdown("---")
 # ==========================================
