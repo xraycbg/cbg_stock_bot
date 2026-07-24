@@ -848,14 +848,12 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
         import streamlit.components.v1 as components
         components.html("""
         <script>
-            const interval = setInterval(() => {
+            setInterval(() => {
                 const inputs = window.parent.document.querySelectorAll('input[aria-label^="총 투자 예산"]');
                 if (inputs.length > 0) {
-                    let attached = false;
                     inputs.forEach(input => {
                         if (!input.dataset.commaListener) {
                             input.dataset.commaListener = 'true';
-                            attached = true;
                             input.addEventListener('input', function(e) {
                                 let cursorPosition = this.selectionStart;
                                 let oldLength = this.value.length;
@@ -882,10 +880,8 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
                             });
                         }
                     });
-                    if (attached) clearInterval(interval);
                 }
-            }, 100);
-            setTimeout(() => clearInterval(interval), 5000); // 5초 뒤 강제 종료
+            }, 300);
         </script>
         """, height=0)
             
