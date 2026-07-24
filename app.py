@@ -420,13 +420,15 @@ st.markdown("""
         display: flex !important;
         width: 100% !important;
         justify-content: flex-start !important;
+        margin-top: -14px !important;
+        margin-bottom: -6px !important;
     }
     
     div[data-testid="stElementContainer"]:has(.title-btn-marker) + div[data-testid="stElementContainer"] button * {
         text-align: left !important;
         justify-content: flex-start !important;
-        font-size: 1.65rem !important;
-        font-weight: 900 !important;
+        font-size: 1.35rem !important;
+        font-weight: 800 !important;
         color: #ffffff !important;
         margin: 0 !important;
         width: 100% !important;
@@ -912,19 +914,19 @@ if st.session_state.view_mode == "LIST":
             
             hdr_col1, hdr_col2, hdr_col3 = st.columns([7.5, 1.5, 0.1], vertical_alignment="center")
             with hdr_col1:
-                st.markdown(f'<span class="ticker-badge" style="display: inline-block; margin-top: 8px;">{ticker} · {excg_tag}</span>', unsafe_allow_html=True)
+                st.markdown(f'<div style="height: 24px; display: flex; align-items: center;"><span class="ticker-badge" style="display: inline-block; margin: 0;">{ticker} · {excg_tag}</span></div>', unsafe_allow_html=True)
             with hdr_col2:
                 st.markdown('<div class="del-btn-wrapper"></div>', unsafe_allow_html=True)
                 if st.button("삭제", key=f"del_btn_{p_id}", use_container_width=True):
                     confirm_delete_dialog(p_id, p['name'])
         
             # 제목을 버튼으로 렌더링 (CSS 타겟팅을 위한 마커 삽입)
-            st.markdown('<div class="title-btn-marker" style="margin-top:-8px;"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="title-btn-marker" style="display:none;"></div>', unsafe_allow_html=True)
             if st.button(p['name'], key=f"edit_title_{p_id}", type="tertiary", use_container_width=True, help="클릭하여 제목 수정"):
                 edit_title_dialog(p_id, p['name'])
 
             card_html2 = f"""
-    <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; margin-bottom: 12px; text-align: center;">
+    <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 4px; margin-bottom: 12px; text-align: center;">
     <div class="summary-item">
     <div class="summary-label">현재가</div>
     <div class="summary-val">${display_curr:.2f}</div>
