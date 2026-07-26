@@ -395,8 +395,9 @@ st.markdown("""
     
     .order-row > div {
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
     
     .price-bold {
