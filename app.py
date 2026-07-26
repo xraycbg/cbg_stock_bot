@@ -1158,11 +1158,15 @@ if st.session_state.view_mode == "LIST":
         
             target_holding = None
             for hold in holdings:
-                if hold.get("pdno") == ticker or hold.get("pd_no") == ticker:
+                if hold.get("ovrs_pdno") == ticker or hold.get("pdno") == ticker or hold.get("pd_no") == ticker:
                     target_holding = hold
                     break
-            actual_shares = float(target_holding.get("allo_qty", target_holding.get("ccld_qty", 0.0))) if target_holding else 0.0
-            actual_avg_price = float(target_holding.get("pchs_avg_pric", 0.0)) if target_holding else 0.0
+            if target_holding:
+                actual_shares = float(target_holding.get("ovrs_cblc_qty", target_holding.get("allo_qty", 0.0)))
+                actual_avg_price = float(target_holding.get("pchs_avg_pric", 0.0))
+            else:
+                actual_shares = 0.0
+                actual_avg_price = 0.0
 
             sync_html = f'''
             <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
