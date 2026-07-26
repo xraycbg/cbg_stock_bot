@@ -105,8 +105,10 @@ st.markdown("""
         border-radius: 10px;
         padding: 12px 14px;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 4px;
     }
 
     .summary-label {
@@ -391,6 +393,12 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
+    .order-row > div {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
     .price-bold {
         font-size: 1.15rem;
         font-weight: 800;
@@ -410,6 +418,8 @@ st.markdown("""
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 10px;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
     
     .tag-purple {
@@ -419,6 +429,8 @@ st.markdown("""
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 10px;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     div.stButton > button {
@@ -1093,18 +1105,14 @@ if st.session_state.view_mode == "LIST":
                 success_orders = 0
                 fail_orders = 0
                 messages = []
-                order_data_log = [
-                    {"구분": "절반 매수 (평단가 LOC)", "수량": card_b1_qty, "단가": card_b1_price},
-                    {"구분": "절반 매수 (고가 LOC)", "수량": card_b2_qty, "단가": card_b2_price}
-                ]
-                if db_shares > 0:
-                    order_data_log.append({"구분": "익절 매도", "수량": db_shares, "단가": sell_price})
+                order_data_log = []
             
                 if approve_buy1 and card_b1_qty > 0:
                     success, res = api.place_order(ticker, card_b1_qty, card_b1_price, order_type="34")
                     if success:
                         success_orders += 1
                         messages.append(f"✅ 절반 매수 (평단가) 전송 성공 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]")
+                        order_data_log.append({"구분": "절반 매수 (평단가 LOC)", "수량": card_b1_qty, "단가": card_b1_price})
                     else:
                         fail_orders += 1
                         messages.append(f"❌ 절반 매수 (평단가) 전송 실패 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
@@ -1115,6 +1123,7 @@ if st.session_state.view_mode == "LIST":
                     if success:
                         success_orders += 1
                         messages.append(f"✅ 절반 매수 (고가) 전송 성공 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]")
+                        order_data_log.append({"구분": "절반 매수 (고가 LOC)", "수량": card_b2_qty, "단가": card_b2_price})
                     else:
                         fail_orders += 1
                         messages.append(f"❌ 절반 매수 (고가) 전송 실패 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
@@ -1125,6 +1134,7 @@ if st.session_state.view_mode == "LIST":
                     if success:
                         success_orders += 1
                         messages.append(f"✅ 익절 매도 전송 성공 [지정가 / {db_shares}주 @ ${sell_price:.2f}]")
+                        order_data_log.append({"구분": "익절 매도", "수량": db_shares, "단가": sell_price})
                     else:
                         fail_orders += 1
                         messages.append(f"❌ 익절 매도 전송 실패 [지정가 / {db_shares}주 @ ${sell_price:.2f}]: {res}")
@@ -1132,8 +1142,11 @@ if st.session_state.view_mode == "LIST":
                 for msg in messages:
                     st.write(msg)
             
-                if success_orders > 0 and fail_orders == 0:
-                    st.success(f"🎉 모든 주문이 성공적으로 전송되었습니다!")
+                if success_orders > 0:
+                    if fail_orders == 0:
+                        st.success(f"🎉 모든 주문이 성공적으로 전송되었습니다!")
+                    else:
+                        st.warning(f"⚠️ 일부 주문이 실패했지만, 성공한 {success_orders}건의 주문 내역을 DB에 기록합니다.")
                     log_entry = {
                         "date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
                         "env": api.env,
