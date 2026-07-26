@@ -1104,30 +1104,30 @@ if st.session_state.view_mode == "LIST":
                     success, res = api.place_order(ticker, card_b1_qty, card_b1_price, order_type="34")
                     if success:
                         success_orders += 1
-                        messages.append(f"✅ 절반 매수 (평단가 LOC) 성공: {card_b1_qty}주 @ ${card_b1_price:.2f}")
+                        messages.append(f"✅ 절반 매수 (평단가) 전송 성공 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]")
                     else:
                         fail_orders += 1
-                        messages.append(f"❌ 절반 매수 (평단가 LOC) 실패 [{card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
+                        messages.append(f"❌ 절반 매수 (평단가) 전송 실패 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
                     time.sleep(1.0)
                 
                 if approve_buy2 and card_b2_qty > 0:
                     success, res = api.place_order(ticker, card_b2_qty, card_b2_price, order_type="34")
                     if success:
                         success_orders += 1
-                        messages.append(f"✅ 절반 매수 (고가 LOC) 성공: {card_b2_qty}주 @ ${card_b2_price:.2f}")
+                        messages.append(f"✅ 절반 매수 (고가) 전송 성공 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]")
                     else:
                         fail_orders += 1
-                        messages.append(f"❌ 절반 매수 (고가 LOC) 실패 [{card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
+                        messages.append(f"❌ 절반 매수 (고가) 전송 실패 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
                     time.sleep(1.0)
                 
                 if approve_sell and db_shares > 0:
                     success, res = api.place_order(ticker, -db_shares, sell_price, order_type="00")
                     if success:
                         success_orders += 1
-                        messages.append(f"✅ 익절 매도 성공: {db_shares}주 @ ${sell_price:.2f}")
+                        messages.append(f"✅ 익절 매도 전송 성공 [지정가 / {db_shares}주 @ ${sell_price:.2f}]")
                     else:
                         fail_orders += 1
-                        messages.append(f"❌ 익절 매도 (지정가) 실패 [{db_shares}주 @ ${sell_price:.2f}]: {res}")
+                        messages.append(f"❌ 익절 매도 전송 실패 [지정가 / {db_shares}주 @ ${sell_price:.2f}]: {res}")
 
                 for msg in messages:
                     st.write(msg)
