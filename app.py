@@ -386,6 +386,8 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        row-gap: 4px;
         margin-bottom: 10px;
     }
     
