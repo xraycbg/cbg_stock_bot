@@ -198,87 +198,92 @@ class KISApi:
         }
         
         # 해외주식 잔고 조회의 필수 쿼리 매개변수
-        params = {
+        base_params = {
             "CANO": self.cano,
             "ACNT_PRDT_CD": self.acnt_prdt_cd,
-            "OVRS_EXCG_CD": "NASD",  # 미국 나스닥 기준 (TQQQ 등)
             "TR_CRCY_CD": "USD",     # 외화 기준 조회
             "CTX_AREA_FK200": "",
             "CTX_AREA_NK200": ""
         }
         
-        res = requests.get(url, headers=headers, params=params)
-        if res.status_code == 200:
-            data = res.json()
-            if data.get("rt_cd") == "0":
-                holdings = data.get("output1", [])
-                summary = data.get("output2", {})
+        holdings = []
+        summary = {}
+        for excg_cd in ["NASD", "NYSE", "AMEX"]:
+            params = base_params.copy()
+            params["OVRS_EXCG_CD"] = excg_cd
+            res = requests.get(url, headers=headers, params=params)
+            if res.status_code == 200:
+                data = res.json()
+                if data.get("rt_cd") == "0":
+                    holdings.extend(data.get("output1", []))
+                    if not summary:
+                        summary = data.get("output2", {})
+                        
+        if summary:
+            # 예수금 파싱 (output2 기본값 확인 후 inquire-psamount로 실제 외화 예수금 조회)
+            usd_cash = float(summary.get("frcr_dncl_amt_2", 0.0))
+            if usd_cash == 0.0 and "frcr_drwg_psbl_amt" in summary:
+                usd_cash = float(summary.get("frcr_drwg_psbl_amt", 0.0))
+            
+            # 해외주식 매수가능금액(외화 예수금) 별도 조회 API 호출
+            try:
+                ps_url = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-psamount"
+                tr_id_ps = "VTTS3007R" if self.env == "mock" else "TTTS3007R"
+                ps_headers = {
+                    "content-type": "application/json",
+                    "authorization": f"Bearer {token}",
+                    "appkey": self.appkey,
+                    "appsecret": self.appsecret,
+                    "tr_id": tr_id_ps
+                }
+                ps_params = {
+                    "CANO": self.cano,
+                    "ACNT_PRDT_CD": self.acnt_prdt_cd,
+                    "OVRS_EXCG_CD": "NASD",
+                    "ITEM_CD": "SOXL",
+                    "OVRS_ORD_UNPR": "150.00"
+                }
+                ps_res = requests.get(ps_url, headers=ps_headers, params=ps_params)
+                if ps_res.status_code == 200:
+                    ps_data = ps_res.json().get("output", {})
+                    fetched_cash = float(ps_data.get("ord_psbl_frcr_amt", ps_data.get("ovrs_ord_psbl_amt", 0.0)))
+                    if fetched_cash > 0:
+                        usd_cash = fetched_cash
+            except Exception as e:
+                print(f"외화 예수금 조회 예외: {e}")
                 
-                # 예수금 파싱 (output2 기본값 확인 후 inquire-psamount로 실제 외화 예수금 조회)
-                usd_cash = float(summary.get("frcr_dncl_amt_2", 0.0))
-                if usd_cash == 0.0 and "frcr_drwg_psbl_amt" in summary:
-                    usd_cash = float(summary.get("frcr_drwg_psbl_amt", 0.0))
-                
-                # 해외주식 매수가능금액(외화 예수금) 별도 조회 API 호출
-                try:
-                    ps_url = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-psamount"
-                    tr_id_ps = "VTTS3007R" if self.env == "mock" else "TTTS3007R"
-                    ps_headers = {
-                        "content-type": "application/json",
-                        "authorization": f"Bearer {token}",
-                        "appkey": self.appkey,
-                        "appsecret": self.appsecret,
-                        "tr_id": tr_id_ps
-                    }
-                    ps_params = {
-                        "CANO": self.cano,
-                        "ACNT_PRDT_CD": self.acnt_prdt_cd,
-                        "OVRS_EXCG_CD": "NASD",
-                        "ITEM_CD": "SOXL",
-                        "OVRS_ORD_UNPR": "150.00"
-                    }
-                    ps_res = requests.get(ps_url, headers=ps_headers, params=ps_params)
-                    if ps_res.status_code == 200:
-                        ps_data = ps_res.json().get("output", {})
-                        fetched_cash = float(ps_data.get("ord_psbl_frcr_amt", ps_data.get("ovrs_ord_psbl_amt", 0.0)))
-                        if fetched_cash > 0:
-                            usd_cash = fetched_cash
-                except Exception as e:
-                    print(f"외화 예수금 조회 예외: {e}")
-                # 원화 예수금 별도 조회 API 호출 (국내주식 잔고 API 활용)
-                krw_cash = 0.0
-                try:
-                    krw_url = f"{self.base_url}/uapi/domestic-stock/v1/trading/inquire-psbl-order"
-                    tr_id_krw = "VTTC8908R" if self.env == "mock" else "TTTC8908R"
-                    krw_headers = {
-                        "content-type": "application/json",
-                        "authorization": f"Bearer {token}",
-                        "appkey": self.appkey,
-                        "appsecret": self.appsecret,
-                        "tr_id": tr_id_krw
-                    }
-                    krw_params = {
-                        "CANO": self.cano,
-                        "ACNT_PRDT_CD": self.acnt_prdt_cd,
-                        "PDNO": "005930",
-                        "ORD_UNPR": "1000",
-                        "ORD_DVSN": "00",
-                        "CMA_EVLU_AMT_ICLD_YN": "N",
-                        "OVRS_ICLD_YN": "N"
-                    }
-                    krw_res = requests.get(krw_url, headers=krw_headers, params=krw_params)
-                    if krw_res.status_code == 200:
-                        krw_data = krw_res.json().get("output", {})
-                        krw_cash = float(krw_data.get("ord_psbl_cash", 0.0))
-                except Exception as e:
-                    print(f"원화 예수금 조회 예외: {e}")
-                
-                return holdings, usd_cash, krw_cash, summary
+            # 원화 예수금 별도 조회 API 호출 (국내주식 잔고 API 활용)
+            krw_cash = 0.0
+            try:
+                krw_url = f"{self.base_url}/uapi/domestic-stock/v1/trading/inquire-psbl-order"
+                tr_id_krw = "VTTC8908R" if self.env == "mock" else "TTTC8908R"
+                krw_headers = {
+                    "content-type": "application/json",
+                    "authorization": f"Bearer {token}",
+                    "appkey": self.appkey,
+                    "appsecret": self.appsecret,
+                    "tr_id": tr_id_krw
+                }
+                krw_params = {
+                    "CANO": self.cano,
+                    "ACNT_PRDT_CD": self.acnt_prdt_cd,
+                    "PDNO": "005930",
+                    "ORD_UNPR": "1000",
+                    "ORD_DVSN": "00",
+                    "CMA_EVLU_AMT_ICLD_YN": "N",
+                    "OVRS_ICLD_YN": "N"
+                }
+                krw_res = requests.get(krw_url, headers=krw_headers, params=krw_params)
+                if krw_res.status_code == 200:
+                    krw_data = krw_res.json().get("output", {})
+                    krw_cash = float(krw_data.get("ord_psbl_cash", 0.0))
+            except Exception as e:
+                print(f"원화 예수금 조회 예외: {e}")
+            
+            return holdings, usd_cash, krw_cash, summary
 
-            else:
-                raise Exception(f"잔고 조회 API 오류: {data.get('msg1')}")
         else:
-            raise Exception(f"잔고 조회 HTTP 오류: {res.status_code} - {res.text}")
+            raise Exception("잔고 조회 실패: 모든 해외 거래소(NASD, NYSE, AMEX) 조회에서 데이터를 가져오지 못했습니다.")
 
 
     def place_order(self, ticker, qty, price, order_type="34", exchange="NASD"):
