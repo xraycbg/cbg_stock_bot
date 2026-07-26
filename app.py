@@ -1107,7 +1107,7 @@ if st.session_state.view_mode == "LIST":
                         messages.append(f"✅ 절반 매수 (평단가 LOC) 성공: {card_b1_qty}주 @ ${card_b1_price:.2f}")
                     else:
                         fail_orders += 1
-                        messages.append(f"❌ 절반 매수 (평단가 LOC): {res}")
+                        messages.append(f"❌ 절반 매수 (평단가 LOC) 실패 [{card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
                     time.sleep(1.0)
                 
                 if approve_buy2 and card_b2_qty > 0:
@@ -1117,7 +1117,7 @@ if st.session_state.view_mode == "LIST":
                         messages.append(f"✅ 절반 매수 (고가 LOC) 성공: {card_b2_qty}주 @ ${card_b2_price:.2f}")
                     else:
                         fail_orders += 1
-                        messages.append(f"❌ 절반 매수 (고가 LOC): {res}")
+                        messages.append(f"❌ 절반 매수 (고가 LOC) 실패 [{card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
                     time.sleep(1.0)
                 
                 if approve_sell and db_shares > 0:
@@ -1127,7 +1127,7 @@ if st.session_state.view_mode == "LIST":
                         messages.append(f"✅ 익절 매도 성공: {db_shares}주 @ ${sell_price:.2f}")
                     else:
                         fail_orders += 1
-                        messages.append(f"❌ 익절 매도: {res}")
+                        messages.append(f"❌ 익절 매도 (지정가) 실패 [{db_shares}주 @ ${sell_price:.2f}]: {res}")
 
                 for msg in messages:
                     st.write(msg)
