@@ -1099,9 +1099,25 @@ if st.session_state.view_mode == "LIST":
     </div>"""
                 st.markdown(sell_html, unsafe_allow_html=True)
 
-            approve_buy1 = True if card_b1_qty > 0 else False
-            approve_buy2 = True if card_b2_qty > 0 else False
-            approve_sell = True if db_shares > 0 else False
+            today_str = pd.Timestamp.now().strftime("%Y-%m-%d")
+            today_history = [entry for entry in p.get("history", []) if entry.get("date", "").startswith(today_str)]
+            
+            already_buy1 = False
+            already_buy2 = False
+            already_sell = False
+            
+            for entry in today_history:
+                for order in entry.get("orders", []):
+                    if order.get("구분") == "절반 매수 (평단가 LOC)":
+                        already_buy1 = True
+                    elif order.get("구분") == "절반 매수 (고가 LOC)":
+                        already_buy2 = True
+                    elif order.get("구분") == "익절 매도":
+                        already_sell = True
+
+            approve_buy1 = True if (card_b1_qty > 0 and not already_buy1) else False
+            approve_buy2 = True if (card_b2_qty > 0 and not already_buy2) else False
+            approve_sell = True if (db_shares > 0 and not already_sell) else False
 
             if st.button("주문 전송", key=f"send_btn_{p_id}", type="primary", use_container_width=True):
                 time.sleep(1.0)
@@ -1110,40 +1126,54 @@ if st.session_state.view_mode == "LIST":
                 messages = []
                 order_data_log = []
             
-                if approve_buy1 and card_b1_qty > 0:
-                    success, res = api.place_order(ticker, card_b1_qty, card_b1_price, order_type="34")
-                    if success:
-                        success_orders += 1
-                        messages.append(f"✅ 절반 매수 (평단가) 전송 성공 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]")
-                        order_data_log.append({"구분": "절반 매수 (평단가 LOC)", "수량": card_b1_qty, "단가": card_b1_price})
-                    else:
-                        fail_orders += 1
-                        messages.append(f"❌ 절반 매수 (평단가) 전송 실패 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
-                    time.sleep(1.0)
-                
-                if approve_buy2 and card_b2_qty > 0:
-                    success, res = api.place_order(ticker, card_b2_qty, card_b2_price, order_type="34")
-                    if success:
-                        success_orders += 1
-                        messages.append(f"✅ 절반 매수 (고가) 전송 성공 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]")
-                        order_data_log.append({"구분": "절반 매수 (고가 LOC)", "수량": card_b2_qty, "단가": card_b2_price})
-                    else:
-                        fail_orders += 1
-                        messages.append(f"❌ 절반 매수 (고가) 전송 실패 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
-                    time.sleep(1.0)
-                
-                if approve_sell and db_shares > 0:
-                    success, res = api.place_order(ticker, -db_shares, sell_price, order_type="00")
-                    if success:
-                        success_orders += 1
-                        messages.append(f"✅ 익절 매도 전송 성공 [지정가 / {db_shares}주 @ ${sell_price:.2f}]")
-                        order_data_log.append({"구분": "익절 매도", "수량": db_shares, "단가": sell_price})
-                    else:
-                        fail_orders += 1
-                        messages.append(f"❌ 익절 매도 전송 실패 [지정가 / {db_shares}주 @ ${sell_price:.2f}]: {res}")
+                if not approve_buy1 and not approve_buy2 and not approve_sell:
+                    st.info("👍 오늘 필요한 모든 주문이 이미 성공적으로 접수되었습니다! (더 이상 전송할 주문이 없습니다)")
+                else:
+                    if card_b1_qty > 0:
+                        if already_buy1:
+                            messages.append(f"⏭️ 절반 매수 (평단가) [LOC / {card_b1_qty}주]: 이미 성공하여 스킵 (중복방지)")
+                        else:
+                            success, res = api.place_order(ticker, card_b1_qty, card_b1_price, order_type="34")
+                            if success:
+                                success_orders += 1
+                                messages.append(f"✅ 절반 매수 (평단가) 전송 성공 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]")
+                                order_data_log.append({"구분": "절반 매수 (평단가 LOC)", "수량": card_b1_qty, "단가": card_b1_price})
+                            else:
+                                fail_orders += 1
+                                messages.append(f"❌ 절반 매수 (평단가) 전송 실패 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
+                            time.sleep(1.0)
+                    
+                    if card_b2_qty > 0:
+                        if already_buy2:
+                            messages.append(f"⏭️ 절반 매수 (고가) [LOC / {card_b2_qty}주]: 이미 성공하여 스킵 (중복방지)")
+                        else:
+                            success, res = api.place_order(ticker, card_b2_qty, card_b2_price, order_type="34")
+                            if success:
+                                success_orders += 1
+                                messages.append(f"✅ 절반 매수 (고가) 전송 성공 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]")
+                                order_data_log.append({"구분": "절반 매수 (고가 LOC)", "수량": card_b2_qty, "단가": card_b2_price})
+                            else:
+                                fail_orders += 1
+                                messages.append(f"❌ 절반 매수 (고가) 전송 실패 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
+                            time.sleep(1.0)
+                    
+                    if db_shares > 0:
+                        if already_sell:
+                            messages.append(f"⏭️ 익절 매도 [지정가 / {db_shares}주]: 이미 성공하여 스킵 (중복방지)")
+                        else:
+                            success, res = api.place_order(ticker, -db_shares, sell_price, order_type="00")
+                            if success:
+                                success_orders += 1
+                                messages.append(f"✅ 익절 매도 전송 성공 [지정가 / {db_shares}주 @ ${sell_price:.2f}]")
+                                order_data_log.append({"구분": "익절 매도", "수량": db_shares, "단가": sell_price})
+                            else:
+                                fail_orders += 1
+                                messages.append(f"❌ 익절 매도 전송 실패 [지정가 / {db_shares}주 @ ${sell_price:.2f}]: {res}")
 
-                for msg in messages:
-                    st.write(msg)
+                    for msg in messages:
+                        st.write(msg)
+                
+
             
                 if success_orders > 0:
                     if fail_orders == 0:
