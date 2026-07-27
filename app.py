@@ -1164,11 +1164,11 @@ if st.session_state.view_mode == "LIST":
                             success, res = api.place_order(ticker, -db_shares, sell_price, order_type="00")
                             if success:
                                 success_orders += 1
-                                messages.append(f"✅ 익절 매도 전송 성공 [지정가 / {db_shares}주 @ ${sell_price:.2f}]")
+                                messages.append(f"✅ 익절 매도 전송 성공 [지정가 / {db_shares:g}주 @ ${sell_price:.2f}]")
                                 order_data_log.append({"구분": "익절 매도", "수량": db_shares, "단가": sell_price})
                             else:
                                 fail_orders += 1
-                                messages.append(f"❌ 익절 매도 전송 실패 [지정가 / {db_shares}주 @ ${sell_price:.2f}]: {res}")
+                                messages.append(f"❌ 익절 매도 전송 실패 [지정가 / {db_shares:g}주 @ ${sell_price:.2f}]: {res}")
 
                     for msg in messages:
                         st.write(msg)

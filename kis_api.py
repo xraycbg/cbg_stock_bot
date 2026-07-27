@@ -306,7 +306,7 @@ class KISApi:
 
         # tr_id 결정 (기본은 매수)
         tr_id = self.tr_id_buy if qty > 0 else self.tr_id_sell
-        actual_qty = abs(qty)
+        actual_qty = int(abs(qty))
 
         
         headers = {
