@@ -445,16 +445,22 @@ class KISApi:
                     for item in data["output"]:
                         if item.get("pdno") != ticker:
                             continue
-                        status = item.get("prcs_stat_name", "")
-                        if "취소" not in status:
-                            try:
-                                orders.append({
-                                    "price": float(item.get("ft_ord_unpr3") or item.get("ord_unpr", 0)),
-                                    "qty": int(item.get("ft_ord_qty") or item.get("ord_qty", 0)),
-                                    "type": item.get("sll_buy_dvsn_cd")
-                                })
-                            except Exception:
-                                pass
+                        
+                        # 예약 취소 여부 확인
+                        cncl_yn = item.get("cncl_yn", "")
+                        tr_dvsn = item.get("tr_dvsn_name", "")
+                        
+                        if cncl_yn == "Y" or "취소" in tr_dvsn:
+                            continue
+
+                        try:
+                            orders.append({
+                                "price": float(item.get("ft_ord_unpr3") or item.get("ord_unpr", 0)),
+                                "qty": int(item.get("ft_ord_qty") or item.get("ord_qty", 0)),
+                                "type": item.get("sll_buy_dvsn_cd")
+                            })
+                        except Exception:
+                            pass
         except Exception as e:
             print("order-resv-list error:", e)
         
