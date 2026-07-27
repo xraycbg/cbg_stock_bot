@@ -700,11 +700,9 @@ with st.sidebar:
 # ==========================================
 # 🔝 상단 Header Bar (Pro 타이틀)
 # ==========================================
-env_badge = "실전투자"
-st.markdown(f'''
+st.markdown('''
 <div style="margin-bottom: 20px;">
     <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">cbg 무매40</span>
-    <span style="font-size:0.75rem; font-weight:800; background:rgba(99,102,241,0.25); color:#a5b4fc; padding:2px 8px; border-radius:12px; margin-left:6px;">{env_badge}</span>
 </div>
 ''', unsafe_allow_html=True)
 
