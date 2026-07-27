@@ -1115,44 +1115,41 @@ if st.session_state.view_mode == "LIST":
                 else:
                     if card_b1_qty > 0:
                         if already_buy1:
-                            messages.append(f"⏭️ 절반 매수 (평단가) [LOC / {card_b1_qty}주]: 이미 성공하여 스킵 (중복방지)")
+                            messages.append(f"⏭️ 절반 매수 (평단가) 스킵  \n[LOC / {card_b1_qty}주]  \n이미 성공하여 스킵 (중복방지)")
                         else:
                             success, res = api.place_order(ticker, card_b1_qty, card_b1_price, order_type="34", is_reservation=is_daytime_res)
                             if success:
                                 success_orders += 1
-                                messages.append(f"✅ {res_tag}절반 매수 (평단가) 성공 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]")
-                                order_data_log.append({"구분": "절반 매수 (평단가 LOC)", "수량": card_b1_qty, "단가": card_b1_price})
+                                messages.append(f"✅ {res_tag}절반 매수 (평단가) 성공  \n[LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]")
                             else:
                                 fail_orders += 1
-                                messages.append(f"❌ {res_tag}절반 매수 (평단가) 실패 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
+                                messages.append(f"❌ {res_tag}절반 매수 (평단가) 실패  \n[LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]  \n{res}")
                             time.sleep(1.0)
                     
                     if card_b2_qty > 0:
                         if already_buy2:
-                            messages.append(f"⏭️ 절반 매수 (고가) [LOC / {card_b2_qty}주]: 이미 성공하여 스킵 (중복방지)")
+                            messages.append(f"⏭️ 절반 매수 (고가) 스킵  \n[LOC / {card_b2_qty}주]  \n이미 성공하여 스킵 (중복방지)")
                         else:
                             success, res = api.place_order(ticker, card_b2_qty, card_b2_price, order_type="34", is_reservation=is_daytime_res)
                             if success:
                                 success_orders += 1
-                                messages.append(f"✅ {res_tag}절반 매수 (고가) 성공 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]")
-                                order_data_log.append({"구분": "절반 매수 (고가 LOC)", "수량": card_b2_qty, "단가": card_b2_price})
+                                messages.append(f"✅ {res_tag}절반 매수 (고가) 성공  \n[LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]")
                             else:
                                 fail_orders += 1
-                                messages.append(f"❌ {res_tag}절반 매수 (고가) 실패 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
+                                messages.append(f"❌ {res_tag}절반 매수 (고가) 실패  \n[LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]  \n{res}")
                             time.sleep(1.0)
                     
                     if db_shares > 0:
                         if already_sell:
-                            messages.append(f"⏭️ 익절 매도 [지정가 / {db_shares}주]: 이미 성공하여 스킵 (중복방지)")
+                            messages.append(f"⏭️ 익절 매도 스킵  \n[지정가 / {db_shares}주]  \n이미 성공하여 스킵 (중복방지)")
                         else:
                             success, res = api.place_order(ticker, -db_shares, sell_price, order_type="00", is_reservation=is_daytime_res)
                             if success:
                                 success_orders += 1
-                                messages.append(f"✅ {res_tag}익절 매도 성공 [지정가 / {db_shares:g}주 @ ${sell_price:.2f}]")
-                                order_data_log.append({"구분": "익절 매도", "수량": db_shares, "단가": sell_price})
+                                messages.append(f"✅ {res_tag}익절 매도 성공  \n[지정가 / {db_shares:g}주 @ ${sell_price:.2f}]")
                             else:
                                 fail_orders += 1
-                                messages.append(f"❌ {res_tag}익절 매도 실패 [지정가 / {db_shares:g}주 @ ${sell_price:.2f}]: {res}")
+                                messages.append(f"❌ {res_tag}익절 매도 실패  \n[지정가 / {db_shares:g}주 @ ${sell_price:.2f}]  \n{res}")
 
                     for msg in messages:
                         st.write(msg)
