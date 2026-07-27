@@ -294,9 +294,14 @@ class KISApi:
         """
         token = self.get_access_token()
         if is_reservation:
-            url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order-rvsec"
+            url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order-resv"
+            if qty > 0:
+                tr_id = "VTTT3014U" if self.env == "mock" else "TTTT3014U"
+            else:
+                tr_id = "VTTT3016U" if self.env == "mock" else "TTTT3016U"
         else:
             url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order"
+            tr_id = self.tr_id_buy if qty > 0 else self.tr_id_sell
         
         # 종목별 한투 해외거래소 코드 자동 매핑 (SOXL -> AMEX / TQQQ -> NASD)
         t_upper = ticker.upper()
@@ -307,11 +312,7 @@ class KISApi:
         else:
             actual_exchange = exchange
 
-        # tr_id 결정 (기본은 매수)
-        tr_id = self.tr_id_buy if qty > 0 else self.tr_id_sell
-        actual_qty = int(abs(qty))
-
-        
+        actual_qty = int(abs(qty))        
         headers = {
             "content-type": "application/json",
             "authorization": f"Bearer {token}",
@@ -328,17 +329,28 @@ class KISApi:
         if actual_order_type == "01": # 시장가의 경우 가격은 0
             price_str = "0"
 
-        payload = {
-            "CANO": self.cano,
-            "ACNT_PRDT_CD": self.acnt_prdt_cd,
-            "OVRS_EXCG_CD": actual_exchange,
-
-            "PDNO": ticker,
-            "ORD_DVSN": actual_order_type,
-            "ORD_QTY": str(actual_qty),
-            "OVRS_ORD_UNPR": price_str,
-            "ORD_SVR_DVSN_CD": "0"
-        }
+        if is_reservation:
+            payload = {
+                "CANO": self.cano,
+                "ACNT_PRDT_CD": self.acnt_prdt_cd,
+                "OVRS_EXCG_CD": actual_exchange,
+                "PDNO": ticker,
+                "ORD_DVSN": actual_order_type,
+                "FT_ORD_QTY": str(actual_qty),
+                "FT_ORD_UNPR3": price_str,
+                "ORD_SVR_DVSN_CD": "0"
+            }
+        else:
+            payload = {
+                "CANO": self.cano,
+                "ACNT_PRDT_CD": self.acnt_prdt_cd,
+                "OVRS_EXCG_CD": actual_exchange,
+                "PDNO": ticker,
+                "ORD_DVSN": actual_order_type,
+                "ORD_QTY": str(actual_qty),
+                "OVRS_ORD_UNPR": price_str,
+                "ORD_SVR_DVSN_CD": "0"
+            }
 
         
         res = requests.post(url, headers=headers, data=json.dumps(payload))
