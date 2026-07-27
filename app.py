@@ -741,7 +741,7 @@ with st.container(border=False):
     
     b_col1, b_col2, b_col3 = st.columns([1, 4, 1])
     with b_col2:
-        if st.button("증권사 계좌정보 강제 갱신", use_container_width=True):
+        if st.button("실 계좌정보 ReLoad", use_container_width=True):
             get_cached_balance.clear() # 잔고 캐시 날리기
             st.session_state.pop("krw_usd_rate", None) # 환율 캐시 날리기
             st.session_state.ticker_price_cache = {} # 현재가 캐시 날리기
