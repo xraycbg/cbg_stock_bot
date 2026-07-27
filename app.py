@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import math
 import time
+import copy
 from dotenv import load_dotenv
 from github_db import GitHubDB
 from kis_api import KISApi
@@ -23,10 +24,16 @@ def confirm_delete_dialog(p_id, p_name):
     with d_col1:
         if st.button("확인", use_container_width=True, type="primary"):
             state, sha = db.get_state()
+            state = copy.deepcopy(state)
             if state and p_id in state["projects"]:
                 del state["projects"][p_id]
-                db.update_state(state, sha)
-            st.rerun()
+                success, _ = db.update_state(state, sha)
+                if success:
+                    st.rerun()
+                else:
+                    st.error("⚠️ 깃허브 DB 저장 실패")
+            else:
+                st.rerun()
     with d_col2:
         if st.button("취소", use_container_width=True):
             st.rerun()
@@ -38,10 +45,16 @@ def edit_title_dialog(p_id, old_name):
     with d_col1:
         if st.button("저장", use_container_width=True, type="primary"):
             state, sha = db.get_state()
+            state = copy.deepcopy(state)
             if state and p_id in state["projects"]:
                 state["projects"][p_id]["name"] = new_name.strip()
-                db.update_state(state, sha)
-            st.rerun()
+                success, _ = db.update_state(state, sha)
+                if success:
+                    st.rerun()
+                else:
+                    st.error("⚠️ 깃허브 DB 저장 실패")
+            else:
+                st.rerun()
     with d_col2:
         if st.button("취소", use_container_width=True):
             st.rerun()
@@ -504,6 +517,7 @@ def get_cached_balance(_api):
     return _api.get_balance()
 
 raw_state, sha = db.get_state()
+raw_state = copy.deepcopy(raw_state)
 
 # 고유 ID 기반 프로젝트 정규화
 def normalize_state(s):
@@ -891,10 +905,13 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
                     "history": []
                 }
                 state["active_project_id"] = new_id
-                _, sha = db.update_state(state, sha)
-                st.session_state.view_mode = "LIST"
-                st.success(f"🎉 [{final_name}] 프로젝트가 생성되었습니다!")
-                st.rerun()
+                success, new_sha = db.update_state(state, sha)
+                if success:
+                    st.session_state.view_mode = "LIST"
+                    st.success(f"🎉 [{final_name}] 프로젝트가 생성되었습니다!")
+                    st.rerun()
+                else:
+                    st.error("⚠️ 깃허브 DB 업데이트에 실패했습니다. 일시적인 서버 오류일 수 있으니 잠시 후 다시 시도해주세요.")
 
     if projects_dict:
         col1, col2, col3 = st.columns([1, 2, 1])
