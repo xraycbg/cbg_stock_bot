@@ -2,9 +2,9 @@
   "projects": {
     "proj_1785195259": {
       "id": "proj_1785195259",
-      "name": "SOXL 1차 (40회차 - $100,000)",
+      "name": "SOXL 1차 (40회차 - $200,000)",
       "target_etf": "SOXL",
-      "total_budget": 100000.0,
+      "total_budget": 200000.0,
       "splits": 40,
       "turn": 0,
       "avg_price": 0.0,
