@@ -368,8 +368,9 @@ class KISApi:
         """
         orders = []
         token = self.get_access_token()
-        import pandas as pd
-        today = pd.Timestamp.now(tz="Asia/Seoul").strftime("%Y%m%d")
+        from datetime import datetime, timedelta, timezone
+        tz = timezone(timedelta(hours=9))
+        today = datetime.now(tz).strftime("%Y%m%d")
 
         # 1. 정규 주문 체결/미체결 내역 (inquire-ccnl)
         url_ccnl = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-ccnl"
