@@ -580,6 +580,10 @@ def normalize_state(s):
         if s.get("active_project_id") not in new_projects:
             s["active_project_id"] = list(new_projects.keys())[0] if new_projects else None
             
+    # 과거 유물(legacy key) 삭제
+    if "active_project" in s:
+        del s["active_project"]
+            
     return s
 
 state = normalize_state(raw_state)
