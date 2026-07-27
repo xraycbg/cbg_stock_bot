@@ -1189,7 +1189,7 @@ if st.session_state.view_mode == "LIST":
                     # 마크다운 포맷을 위해 두 칸 공백 제거 등 텔레그램 용으로 약간 다듬음
                     tele_msgs = [m.replace("  \n", "\n") for m in messages]
                     tele_body = "\n\n".join(tele_msgs)
-                    tele_text = f"🤖 *주문 전송 결과 알림*\n\n🔹 *프로젝트*: {p_name}\n\n{tele_body}"
+                    tele_text = f"🤖 *주문 전송 결과 알림*\n\n🔹 *프로젝트*: {p.get('name', '알 수 없는 프로젝트')}\n\n{tele_body}"
                     send_telegram_msg(tele_text)
         
 
