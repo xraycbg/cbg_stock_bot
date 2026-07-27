@@ -963,7 +963,7 @@ if st.session_state.view_mode == "LIST":
         
         # 실계좌 누적 매수금액 기반 회차 자동 추정
         if daily_budget > 0:
-            turn_cnt = round((total_spent / daily_budget) * 2) / 2
+            turn_cnt = round(total_spent / daily_budget, 1)
         else:
             turn_cnt = 0.0
         
