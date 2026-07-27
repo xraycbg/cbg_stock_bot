@@ -1100,23 +1100,38 @@ if st.session_state.view_mode == "LIST":
                 st.markdown(sell_html, unsafe_allow_html=True)
 
             today_str = pd.Timestamp.now().strftime("%Y-%m-%d")
-            today_history = [
-                entry for entry in p.get("history", []) 
-                if entry.get("date", "").startswith(today_str) and entry.get("env") == api.env
-            ]
             
             already_buy1 = False
             already_buy2 = False
             already_sell = False
             
-            for entry in today_history:
-                for order in entry.get("orders", []):
-                    if order.get("구분") == "절반 매수 (평단가 LOC)":
-                        already_buy1 = True
-                    elif order.get("구분") == "절반 매수 (고가 LOC)":
-                        already_buy2 = True
-                    elif order.get("구분") == "익절 매도":
-                        already_sell = True
+            if api.env == "real":
+                # 실전투자: 실제 계좌를 조회하여 '취소'되지 않은 주문 내역 확인
+                live_orders = api.get_today_live_orders(ticker)
+                for order in live_orders:
+                    oprice = order.get("price", 0.0)
+                    if order.get("type") == "02": # 매수
+                        if abs(oprice - card_b1_price) < 0.01:
+                            already_buy1 = True
+                        elif abs(oprice - card_b2_price) < 0.01:
+                            already_buy2 = True
+                    elif order.get("type") == "01": # 매도
+                        if abs(oprice - sell_price) < 0.01:
+                            already_sell = True
+            else:
+                # 모의투자: 한국투자증권 API 제약으로 예약주문 조회가 불가하여 DB(history) 기반 확인
+                today_history = [
+                    entry for entry in p.get("history", []) 
+                    if entry.get("date", "").startswith(today_str) and entry.get("env") == api.env
+                ]
+                for entry in today_history:
+                    for order in entry.get("orders", []):
+                        if order.get("구분") == "절반 매수 (평단가 LOC)":
+                            already_buy1 = True
+                        elif order.get("구분") == "절반 매수 (고가 LOC)":
+                            already_buy2 = True
+                        elif order.get("구분") == "익절 매도":
+                            already_sell = True
 
             approve_buy1 = True if (card_b1_qty > 0 and not already_buy1) else False
             approve_buy2 = True if (card_b2_qty > 0 and not already_buy2) else False

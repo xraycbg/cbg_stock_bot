@@ -373,6 +373,110 @@ class KISApi:
             return False, err_msg
 
 
+    def get_today_live_orders(self, ticker):
+        """
+        오늘의 주문 내역(체결/미체결 및 실전투자의 경우 예약주문)을 조회하여
+        '취소'되지 않고 살아있는 주문들의 가격과 수량 리스트를 반환합니다.
+        반환 형식: [{"price": 100.0, "qty": 10, "type": "01"}, ...] (01: 매도, 02: 매수)
+        """
+        orders = []
+        token = self.get_access_token()
+        import pandas as pd
+        today = pd.Timestamp.now(tz="Asia/Seoul").strftime("%Y%m%d")
+
+        # 1. 정규 주문 체결/미체결 내역 (inquire-ccnl)
+        url_ccnl = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-ccnl"
+        tr_id_ccnl = "TTTS3035R" if self.env == "real" else "VTTS3035R"
+        headers_ccnl = {
+            "content-type": "application/json",
+            "authorization": f"Bearer {token}",
+            "appkey": self.appkey,
+            "appsecret": self.appsecret,
+            "tr_id": tr_id_ccnl
+        }
+        params_ccnl = {
+            "CANO": self.cano,
+            "ACNT_PRDT_CD": self.acnt_prdt_cd,
+            "PDNO": ticker if self.env == "real" else "", # 모의투자는 빈칸 필수
+            "ORD_STRT_DT": today,
+            "ORD_END_DT": today,
+            "SLL_BUY_DVSN": "00",
+            "CCLD_NCCS_DVSN": "00",
+            "OVRS_EXCG_CD": "NASD" if self.env == "real" else "",
+            "SORT_SQN": "DS",
+            "ORD_DT": "",
+            "ORD_GNO_BRNO": "",
+            "ODNO": "",
+            "CTX_AREA_NK200": "",
+            "CTX_AREA_FK200": ""
+        }
+        try:
+            res_ccnl = requests.get(url_ccnl, headers=headers_ccnl, params=params_ccnl)
+            if res_ccnl.status_code == 200:
+                data = res_ccnl.json()
+                if "output" in data and isinstance(data["output"], list):
+                    for item in data["output"]:
+                        if self.env == "mock" and item.get("pdno") != ticker:
+                            continue
+                        status = item.get("ord_stat_name", "")
+                        if "취소" not in status:
+                            try:
+                                orders.append({
+                                    "price": float(item.get("ft_ord_unpr3") or item.get("ord_unpr", 0)),
+                                    "qty": int(item.get("ft_ord_qty") or item.get("ord_qty", 0)),
+                                    "type": item.get("sll_buy_dvsn_cd")
+                                })
+                            except Exception:
+                                pass
+        except Exception as e:
+            print("inquire-ccnl error:", e)
+
+        # 2. 예약 주문 내역 (order-resv-list) - 실전투자에서만 지원됨
+        if self.env == "real":
+            url_resv = f"{self.base_url}/uapi/overseas-stock/v1/trading/order-resv-list"
+            tr_id_resv = "TTTT3039R"
+            headers_resv = {
+                "content-type": "application/json",
+                "authorization": f"Bearer {token}",
+                "appkey": self.appkey,
+                "appsecret": self.appsecret,
+                "tr_id": tr_id_resv
+            }
+            params_resv = {
+                "CANO": self.cano,
+                "ACNT_PRDT_CD": self.acnt_prdt_cd,
+                "INQR_STRT_DT": today,
+                "INQR_END_DT": today,
+                "INQR_DVSN_CD": "00",
+                "OVRS_EXCG_CD": "NASD",
+                "PRDT_TYPE_CD": "",
+                "CTX_AREA_FK200": "",
+                "CTX_AREA_NK200": ""
+            }
+            try:
+                res_resv = requests.get(url_resv, headers=headers_resv, params=params_resv)
+                if res_resv.status_code == 200:
+                    data = res_resv.json()
+                    if "output" in data and isinstance(data["output"], list):
+                        for item in data["output"]:
+                            if item.get("pdno") != ticker:
+                                continue
+                            status = item.get("prcs_stat_name", "")
+                            if "취소" not in status:
+                                try:
+                                    orders.append({
+                                        "price": float(item.get("ft_ord_unpr3") or item.get("ord_unpr", 0)),
+                                        "qty": int(item.get("ft_ord_qty") or item.get("ord_qty", 0)),
+                                        "type": item.get("sll_buy_dvsn_cd")
+                                    })
+                                except Exception:
+                                    pass
+            except Exception as e:
+                print("order-resv-list error:", e)
+        
+        return orders
+
+
 if __name__ == "__main__":
     # 로컬 간단 테스트
     try:
