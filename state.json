@@ -250,15 +250,29 @@
       "target_etf": "TQQQ",
       "total_budget": 6826.0,
       "splits": 40,
-      "turn": 0,
+      "turn": 0.0,
       "avg_price": 0.0,
       "total_shares": 0.0,
       "total_spent": 0.0,
       "status": "진행중",
       "created_at": "2026-07-27 22:20:29",
       "history": []
+    },
+    "proj_1785190853": {
+      "id": "proj_1785190853",
+      "name": "TQQQ 2차 (20회차 - $10,000)",
+      "target_etf": "TQQQ",
+      "total_budget": 10000.0,
+      "splits": 20,
+      "turn": 0,
+      "avg_price": 0.0,
+      "total_shares": 0.0,
+      "total_spent": 0.0,
+      "status": "진행중",
+      "created_at": "2026-07-27 22:20:53",
+      "history": []
     }
   },
   "app_password": "aaaa",
-  "active_project_id": "proj_1785190829"
+  "active_project_id": "proj_1785190853"
 }
