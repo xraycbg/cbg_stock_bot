@@ -738,6 +738,7 @@ st.markdown(f'''
 <div style="margin-bottom: 20px;">
     <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">cbg 무매40</span>
     <span style="font-size:0.75rem; font-weight:800; background:rgba(99,102,241,0.25); color:#a5b4fc; padding:2px 8px; border-radius:12px; margin-left:6px;">{env_badge}</span>
+    <span style="font-size:0.75rem; font-weight:800; background:rgba(16,185,129,0.25); color:#34d399; padding:2px 8px; border-radius:12px; margin-left:4px;">🤖 스케줄러 대기 중 (23:00)</span>
 </div>
 ''', unsafe_allow_html=True)
 
