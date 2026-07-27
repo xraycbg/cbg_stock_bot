@@ -516,6 +516,27 @@ def get_cached_price(_api, ticker):
 def get_cached_balance(_api):
     return _api.get_balance()
 
+def send_telegram_msg(text):
+    import requests
+    import os
+    try:
+        cloud_token = st.secrets.get("TELEGRAM_BOT_TOKEN")
+        cloud_chat = st.secrets.get("TELEGRAM_CHAT_ID")
+    except Exception:
+        cloud_token, cloud_chat = None, None
+        
+    token = os.getenv("TELEGRAM_BOT_TOKEN") or cloud_token
+    chat_id = os.getenv("TELEGRAM_CHAT_ID") or cloud_chat
+    if token and chat_id:
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            payload = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
+            resp = requests.post(url, json=payload, timeout=5)
+            return resp.status_code == 200, resp.text
+        except Exception as e:
+            return False, str(e)
+    return False, "Not configured"
+
 raw_state, sha = db.get_state()
 raw_state = copy.deepcopy(raw_state)
 
@@ -652,33 +673,18 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 📲 텔레그램 연동")
     if st.button("🚀 텔레그램 테스트 발송", use_container_width=True):
-        import requests
+        active_id = state.get("active_project_id")
+        project = state.get("projects", {}).get(active_id, {})
+        proj_name = project.get("name", "프로젝트 없음")
+        env_str = "🚀 실전투자"
+        target = project.get("target_etf", "N/A")
         
         try:
-            cloud_token = st.secrets.get("TELEGRAM_BOT_TOKEN")
-            cloud_chat = st.secrets.get("TELEGRAM_CHAT_ID")
+            _, usd, krw, _ = get_cached_balance(api)
         except Exception:
-            cloud_token, cloud_chat = None, None
-            
-        token = os.getenv("TELEGRAM_BOT_TOKEN") or cloud_token
-        chat_id = os.getenv("TELEGRAM_CHAT_ID") or cloud_chat
+            usd, krw = 0.0, 0.0
         
-        if not token or not chat_id:
-            st.error("텔레그램 설정이 필요합니다. (.env 확인)")
-        else:
-            try:
-                active_id = state.get("active_project_id")
-                project = state.get("projects", {}).get(active_id, {})
-                proj_name = project.get("name", "프로젝트 없음")
-                env_str = "🚀 실전투자"
-                target = project.get("target_etf", "N/A")
-                
-                try:
-                    _, usd, krw, _ = get_cached_balance(api)
-                except Exception:
-                    usd, krw = 0.0, 0.0
-                
-                msg = f"""🤖 *cbg 무매40 시스템 알림*
+        msg = f"""🤖 *cbg 무매40 시스템 알림*
 
 🔹 *실행 환경*: {env_str}
 🔹 *진행 프로젝트*: {proj_name}
@@ -687,17 +693,14 @@ with st.sidebar:
 🔹 *원화 예수금*: {krw:,.0f} 원
 
 정상적으로 텔레그램 연동이 완료되었습니다! 🎉"""
-                
-                url = f"https://api.telegram.org/bot{token}/sendMessage"
-                payload = {"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"}
-                resp = requests.post(url, json=payload)
-                
-                if resp.status_code == 200:
-                    st.success("✅ 텔레그램으로 테스트 메시지를 성공적으로 발송했습니다!")
-                else:
-                    st.error(f"❌ 발송 실패: {resp.text}")
-            except Exception as e:
-                st.error(f"❌ 발송 에러: {e}")
+        
+        success, err = send_telegram_msg(msg)
+        if success:
+            st.success("✅ 텔레그램으로 테스트 메시지를 성공적으로 발송했습니다!")
+        elif err == "Not configured":
+            st.error("텔레그램 설정이 필요합니다. (.env 확인)")
+        else:
+            st.error(f"❌ 발송 실패: {err}")
                 
 
 
@@ -1180,6 +1183,14 @@ if st.session_state.view_mode == "LIST":
                         st.success(f"🎉 모든 주문이 성공적으로 전송되었습니다!")
                     else:
                         st.warning(f"⚠️ 일부 주문이 실패했지만, {success_orders}건의 주문 전송에 성공했습니다.")
+                        
+                # 텔레그램 알림 발송 (전송된 내용이 있을 때만)
+                if messages:
+                    # 마크다운 포맷을 위해 두 칸 공백 제거 등 텔레그램 용으로 약간 다듬음
+                    tele_msgs = [m.replace("  \n", "\n") for m in messages]
+                    tele_body = "\n\n".join(tele_msgs)
+                    tele_text = f"🤖 *주문 전송 결과 알림*\n\n🔹 *프로젝트*: {p_name}\n\n{tele_body}"
+                    send_telegram_msg(tele_text)
         
 
 
