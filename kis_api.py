@@ -10,29 +10,17 @@ load_dotenv()
 
 class KISApi:
     def __init__(self):
-        self.env = os.getenv("KIS_ENVIRONMENT", "mock")
-        
-        # 환경에 맞춰 각기 다른 환경변수 로드
-        if self.env == "real":
-            self.appkey = os.getenv("REAL_KIS_APPKEY")
-            self.appsecret = os.getenv("REAL_KIS_APPSECRET")
-            self.cano = os.getenv("REAL_KIS_CANO")
-            self.acnt_prdt_cd = os.getenv("REAL_KIS_ACNT_PRDT_CD", "01")
-            self.base_url = "https://openapi.koreainvestment.com:9443"
-            self.tr_id_buy = "TTTT1002U"
-            self.tr_id_sell = "TTTT1006U"
-            self.tr_id_balance = "TTTS3012R"
-        else:
-            self.appkey = os.getenv("MOCK_KIS_APPKEY")
-            self.appsecret = os.getenv("MOCK_KIS_APPSECRET")
-            self.cano = os.getenv("MOCK_KIS_CANO")
-            self.acnt_prdt_cd = os.getenv("MOCK_KIS_ACNT_PRDT_CD", "01")
-            self.base_url = "https://openapivts.koreainvestment.com:29443"
-            self.tr_id_buy = "VTTT1002U"
-            self.tr_id_sell = "VTTT1006U"
-            self.tr_id_balance = "VTTS3012R"
+        # 실전투자 전용 설정으로 고정
+        self.base_url = "https://openapi.koreainvestment.com:9443"
+        self.appkey = os.getenv("REAL_KIS_APPKEY")
+        self.appsecret = os.getenv("REAL_KIS_APPSECRET")
+        self.cano = os.getenv("REAL_KIS_CANO")
+        self.acnt_prdt_cd = os.getenv("REAL_KIS_ACNT_PRDT_CD", "01")
+        self.tr_id_buy = "TTTT1002U"
+        self.tr_id_sell = "TTTT1006U"
+        self.tr_id_balance = "TTTS3012R"
             
-        self.token_cache_file = f"token_cache_{self.env}.json"
+        self.token_cache_file = "token_cache_real.json"
 
     def get_access_token(self):
         """
@@ -82,7 +70,7 @@ class KISApi:
     def get_current_price(self, ticker, exchange="NAS"):
         """
         미국 주식 현재가(시세)를 조회합니다.
-        한투 API에서 시세를 제공하지 않거나(모의투자 환경 등) 장외 시간일 경우 실시간 시세를 백업 로드합니다.
+        한투 API에서 시세를 제공하지 않거나 장외 시간일 경우 실시간 시세를 백업 로드합니다.
         """
         # 1. 한투 API 시세 조회 시도
         try:
@@ -228,7 +216,7 @@ class KISApi:
             # 해외주식 매수가능금액(외화 예수금) 별도 조회 API 호출
             try:
                 ps_url = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-psamount"
-                tr_id_ps = "VTTS3007R" if self.env == "mock" else "TTTS3007R"
+                tr_id_ps = "TTTS3007R"
                 ps_headers = {
                     "content-type": "application/json",
                     "authorization": f"Bearer {token}",
@@ -256,7 +244,7 @@ class KISApi:
             krw_cash = 0.0
             try:
                 krw_url = f"{self.base_url}/uapi/domestic-stock/v1/trading/inquire-psbl-order"
-                tr_id_krw = "VTTC8908R" if self.env == "mock" else "TTTC8908R"
+                tr_id_krw = "TTTC8908R"
                 krw_headers = {
                     "content-type": "application/json",
                     "authorization": f"Bearer {token}",
@@ -274,7 +262,7 @@ class KISApi:
                     "OVRS_ICLD_YN": "N"
                 }
                 krw_res = requests.get(krw_url, headers=krw_headers, params=krw_params)
-                if krw_res.status_code == 200:
+                if res.status_code == 200:
                     krw_data = krw_res.json().get("output", {})
                     krw_cash = float(krw_data.get("ord_psbl_cash", 0.0))
             except Exception as e:
@@ -295,10 +283,10 @@ class KISApi:
         token = self.get_access_token()
         if is_reservation:
             url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order-resv"
-            if qty > 0:
-                tr_id = "VTTT3014U" if self.env == "mock" else "TTTT3014U"
-            else:
-                tr_id = "VTTT3016U" if self.env == "mock" else "TTTT3016U"
+            if qty > 0: # Buy
+                tr_id = "TTTT3014U"
+            else: # Sell
+                tr_id = "TTTT3016U"
         else:
             url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order"
             tr_id = self.tr_id_buy if qty > 0 else self.tr_id_sell
@@ -321,8 +309,7 @@ class KISApi:
             "tr_id": tr_id
         }
         
-        # 모의투자는 한투 서버 특성상 지정가("00")만 지원되므로 모의투자 시 자동 보정
-        actual_order_type = "00" if (self.env == "mock" and order_type == "34") else order_type
+        actual_order_type = order_type
 
         # 가격 소수점 처리 (미국 주식은 $1 이상 종목 소수점 2자리 권장)
         price_str = f"{price:.2f}"
@@ -386,7 +373,7 @@ class KISApi:
 
         # 1. 정규 주문 체결/미체결 내역 (inquire-ccnl)
         url_ccnl = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-ccnl"
-        tr_id_ccnl = "TTTS3035R" if self.env == "real" else "VTTS3035R"
+        tr_id_ccnl = "TTTS3035R"
         headers_ccnl = {
             "content-type": "application/json",
             "authorization": f"Bearer {token}",
@@ -397,12 +384,12 @@ class KISApi:
         params_ccnl = {
             "CANO": self.cano,
             "ACNT_PRDT_CD": self.acnt_prdt_cd,
-            "PDNO": ticker if self.env == "real" else "", # 모의투자는 빈칸 필수
+            "PDNO": ticker,
             "ORD_STRT_DT": today,
             "ORD_END_DT": today,
             "SLL_BUY_DVSN": "00",
             "CCLD_NCCS_DVSN": "00",
-            "OVRS_EXCG_CD": "NASD" if self.env == "real" else "",
+            "OVRS_EXCG_CD": "NASD",
             "SORT_SQN": "DS",
             "ORD_DT": "",
             "ORD_GNO_BRNO": "",
@@ -416,8 +403,6 @@ class KISApi:
                 data = res_ccnl.json()
                 if "output" in data and isinstance(data["output"], list):
                     for item in data["output"]:
-                        if self.env == "mock" and item.get("pdno") != ticker:
-                            continue
                         status = item.get("ord_stat_name", "")
                         if "취소" not in status:
                             try:
@@ -431,48 +416,47 @@ class KISApi:
         except Exception as e:
             print("inquire-ccnl error:", e)
 
-        # 2. 예약 주문 내역 (order-resv-list) - 실전투자에서만 지원됨
-        if self.env == "real":
-            url_resv = f"{self.base_url}/uapi/overseas-stock/v1/trading/order-resv-list"
-            tr_id_resv = "TTTT3039R"
-            headers_resv = {
-                "content-type": "application/json",
-                "authorization": f"Bearer {token}",
-                "appkey": self.appkey,
-                "appsecret": self.appsecret,
-                "tr_id": tr_id_resv
-            }
-            params_resv = {
-                "CANO": self.cano,
-                "ACNT_PRDT_CD": self.acnt_prdt_cd,
-                "INQR_STRT_DT": today,
-                "INQR_END_DT": today,
-                "INQR_DVSN_CD": "00",
-                "OVRS_EXCG_CD": "NASD",
-                "PRDT_TYPE_CD": "",
-                "CTX_AREA_FK200": "",
-                "CTX_AREA_NK200": ""
-            }
-            try:
-                res_resv = requests.get(url_resv, headers=headers_resv, params=params_resv)
-                if res_resv.status_code == 200:
-                    data = res_resv.json()
-                    if "output" in data and isinstance(data["output"], list):
-                        for item in data["output"]:
-                            if item.get("pdno") != ticker:
-                                continue
-                            status = item.get("prcs_stat_name", "")
-                            if "취소" not in status:
-                                try:
-                                    orders.append({
-                                        "price": float(item.get("ft_ord_unpr3") or item.get("ord_unpr", 0)),
-                                        "qty": int(item.get("ft_ord_qty") or item.get("ord_qty", 0)),
-                                        "type": item.get("sll_buy_dvsn_cd")
-                                    })
-                                except Exception:
-                                    pass
-            except Exception as e:
-                print("order-resv-list error:", e)
+        # 2. 예약 주문 내역 (order-resv-list)
+        url_resv = f"{self.base_url}/uapi/overseas-stock/v1/trading/order-resv-list"
+        tr_id_resv = "TTTT3039R"
+        headers_resv = {
+            "content-type": "application/json",
+            "authorization": f"Bearer {token}",
+            "appkey": self.appkey,
+            "appsecret": self.appsecret,
+            "tr_id": tr_id_resv
+        }
+        params_resv = {
+            "CANO": self.cano,
+            "ACNT_PRDT_CD": self.acnt_prdt_cd,
+            "INQR_STRT_DT": today,
+            "INQR_END_DT": today,
+            "INQR_DVSN_CD": "00",
+            "OVRS_EXCG_CD": "NASD",
+            "PRDT_TYPE_CD": "",
+            "CTX_AREA_FK200": "",
+            "CTX_AREA_NK200": ""
+        }
+        try:
+            res_resv = requests.get(url_resv, headers=headers_resv, params=params_resv)
+            if res_resv.status_code == 200:
+                data = res_resv.json()
+                if "output" in data and isinstance(data["output"], list):
+                    for item in data["output"]:
+                        if item.get("pdno") != ticker:
+                            continue
+                        status = item.get("prcs_stat_name", "")
+                        if "취소" not in status:
+                            try:
+                                orders.append({
+                                    "price": float(item.get("ft_ord_unpr3") or item.get("ord_unpr", 0)),
+                                    "qty": int(item.get("ft_ord_qty") or item.get("ord_qty", 0)),
+                                    "type": item.get("sll_buy_dvsn_cd")
+                                })
+                            except Exception:
+                                pass
+        except Exception as e:
+            print("order-resv-list error:", e)
         
         return orders
 

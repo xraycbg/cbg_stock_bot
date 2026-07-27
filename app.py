@@ -498,11 +498,11 @@ db = st.session_state.github_db
 api = st.session_state.kis_api
 
 @st.cache_data(ttl=300, show_spinner=True)
-def get_cached_price(_api, env_key, ticker):
+def get_cached_price(_api, ticker):
     return _api.get_current_price(ticker)
 
 @st.cache_data(ttl=300, show_spinner=True)
-def get_cached_balance(_api, env_key):
+def get_cached_balance(_api):
     return _api.get_balance()
 
 raw_state, sha = db.get_state()
@@ -621,35 +621,7 @@ if "view_mode" not in st.session_state:
 # 사이드바 (설정용)
 with st.sidebar:
     st.markdown("### ⚙️ 시스템 설정")
-    env_option = st.selectbox(
-        "실행 환경 선택",
-        ["모의투자 (Mock)", "실전투자 (Real)"],
-        index=0 if api.env == "mock" else 1
-    )
-    new_env = "real" if "Real" in env_option else "mock"
-    if api.env != new_env:
-        # .env 파일에 영구 반영
-        env_file = ".env"
-        if os.path.exists(env_file):
-            with open(env_file, "r") as f:
-                lines = f.readlines()
-            with open(env_file, "w") as f:
-                found = False
-                for line in lines:
-                    if line.startswith("KIS_ENVIRONMENT="):
-                        f.write(f"KIS_ENVIRONMENT={new_env}\n")
-                        found = True
-                    else:
-                        f.write(line)
-                if not found:
-                    f.write(f"KIS_ENVIRONMENT={new_env}\n")
-        
-        # 메모리 업데이트 및 강제 새로고침
-        os.environ["KIS_ENVIRONMENT"] = new_env
-        st.session_state.kis_api = KISApi()
-        st.toast(f"✅ 환경이 {env_option}로 영구 변경되었습니다!")
-        time.sleep(0.5)
-        st.rerun()
+
         
     st.markdown("---")
     st.markdown("### 💾 GitHub DB 상태")
@@ -682,11 +654,11 @@ with st.sidebar:
                 active_id = state.get("active_project_id")
                 project = state.get("projects", {}).get(active_id, {})
                 proj_name = project.get("name", "프로젝트 없음")
-                env_str = "🚀 실전투자" if api.env == "real" else "🧪 모의투자"
+                env_str = "🚀 실전투자"
                 target = project.get("target_etf", "N/A")
                 
                 try:
-                    _, usd, krw, _ = get_cached_balance(api, api.env)
+                    _, usd, krw, _ = get_cached_balance(api)
                 except Exception:
                     usd, krw = 0.0, 0.0
                 
@@ -711,29 +683,12 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"❌ 발송 에러: {e}")
                 
-    st.markdown("---")
-    st.markdown("### 🧪 모의투자 주문 테스트")
-    if st.button("🛒 SOXL 1주 매수 테스트", use_container_width=True):
-        try:
-            if api.env == "mock":
-                price = api.get_current_price("SOXL")
-                if price > 0:
-                    test_price = price * 0.5
-                    resp = api.place_order("SOXL", 1, test_price, order_type="34")
-                    st.success(f"✅ SOXL 1주 주문 테스트 전송 완료! (가격: ${test_price:.2f})\n\n스마트폰 앱 '모의투자 - 해외주식 - 예약/미체결 내역'을 확인해 보세요.")
-                    with st.expander("API 응답 로그"):
-                        st.json(resp)
-                else:
-                    st.error("❌ SOXL 현재가를 조회할 수 없어 가격을 계산하지 못했습니다.")
-            else:
-                st.error("❌ 안전을 위해 이 버튼은 '모의투자(mock)' 환경에서만 동작합니다!")
-        except Exception as e:
-            st.error(f"❌ 주문 테스트 에러 발생: {e}")
+
 
 # ==========================================
 # 🔝 상단 Header Bar (Pro 타이틀)
 # ==========================================
-env_badge = "모의투자" if api.env == "mock" else "실전투자"
+env_badge = "실전투자"
 st.markdown(f'''
 <div style="margin-bottom: 20px;">
     <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">cbg 무매40</span>
@@ -750,7 +705,7 @@ if "token_retry_cnt" not in st.session_state:
     st.session_state.token_retry_cnt = 0
 
 try:
-    holdings, usd_cash_val, krw_cash_val, _ = get_cached_balance(api, api.env)
+    holdings, usd_cash_val, krw_cash_val, _ = get_cached_balance(api)
     st.session_state.token_retry_cnt = 0  # 성공 시 리셋
 except Exception:
     if st.session_state.token_retry_cnt < 2:
@@ -975,7 +930,7 @@ if st.session_state.view_mode == "LIST":
         
         # 현재가 조회 (오류 시 평단 또는 0)
         try:
-            curr_price = get_cached_price(api, api.env, ticker)
+            curr_price = get_cached_price(api, ticker)
         except Exception:
             curr_price = 0.0
         display_curr = curr_price if curr_price > 0 else db_avg_price
@@ -1105,33 +1060,18 @@ if st.session_state.view_mode == "LIST":
             already_buy2 = False
             already_sell = False
             
-            if api.env == "real":
-                # 실전투자: 실제 계좌를 조회하여 '취소'되지 않은 주문 내역 확인
-                live_orders = api.get_today_live_orders(ticker)
-                for order in live_orders:
-                    oprice = order.get("price", 0.0)
-                    if order.get("type") == "02": # 매수
-                        if abs(oprice - card_b1_price) < 0.01:
-                            already_buy1 = True
-                        elif abs(oprice - card_b2_price) < 0.01:
-                            already_buy2 = True
-                    elif order.get("type") == "01": # 매도
-                        if abs(oprice - sell_price) < 0.01:
-                            already_sell = True
-            else:
-                # 모의투자: 한국투자증권 API 제약으로 예약주문 조회가 불가하여 DB(history) 기반 확인
-                today_history = [
-                    entry for entry in p.get("history", []) 
-                    if entry.get("date", "").startswith(today_str) and entry.get("env") == api.env
-                ]
-                for entry in today_history:
-                    for order in entry.get("orders", []):
-                        if order.get("구분") == "절반 매수 (평단가 LOC)":
-                            already_buy1 = True
-                        elif order.get("구분") == "절반 매수 (고가 LOC)":
-                            already_buy2 = True
-                        elif order.get("구분") == "익절 매도":
-                            already_sell = True
+            # 실전투자: 실제 계좌를 조회하여 '취소'되지 않은 주문 내역 확인
+            live_orders = api.get_today_live_orders(ticker)
+            for order in live_orders:
+                oprice = order.get("price", 0.0)
+                if order.get("type") == "02": # 매수
+                    if abs(oprice - card_b1_price) < 0.01:
+                        already_buy1 = True
+                    elif abs(oprice - card_b2_price) < 0.01:
+                        already_buy2 = True
+                elif order.get("type") == "01": # 매도
+                    if abs(oprice - sell_price) < 0.01:
+                        already_sell = True
 
             approve_buy1 = True if (card_b1_qty > 0 and not already_buy1) else False
             approve_buy2 = True if (card_b2_qty > 0 and not already_buy2) else False
@@ -1205,7 +1145,7 @@ if st.session_state.view_mode == "LIST":
                         st.warning(f"⚠️ 일부 주문이 실패했지만, 성공한 {success_orders}건의 주문 내역을 DB에 기록합니다.")
                     log_entry = {
                         "date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "env": api.env,
+                        "env": "real",
                         "target": ticker,
                         "turn_before": turn_cnt,
                         "turn_after": turn_cnt,
