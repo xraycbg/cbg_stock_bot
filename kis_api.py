@@ -241,7 +241,7 @@ class KISApi:
                 print(f"외화 예수금 조회 예외: {e}")
                 
             # 원화 예수금 별도 조회 API 호출 (국내주식 잔고 API 활용)
-            krw_cash = 0.0
+            krw_cash = None
             try:
                 krw_url = f"{self.base_url}/uapi/domestic-stock/v1/trading/inquire-psbl-order"
                 tr_id_krw = "TTTC8908R"
@@ -267,6 +267,7 @@ class KISApi:
                     krw_cash = float(krw_data.get("ord_psbl_cash", 0.0))
             except Exception as e:
                 print(f"원화 예수금 조회 예외: {e}")
+                krw_cash = None
             
             return holdings, usd_cash, krw_cash, summary
 

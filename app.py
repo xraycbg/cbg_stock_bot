@@ -712,8 +712,8 @@ except Exception:
         time.sleep(3)
         st.rerun()
     else:
-        usd_cash_val = 0.0
-        krw_cash_val = 0.0
+        usd_cash_val = None
+        krw_cash_val = None
         st.error("⚠️ 증권사 API 접속이 지연되고 있습니다. 나중에 수동으로 새로고침(Cmd+R)해주세요.")
 
 active_proj_count = len(projects_dict)
@@ -722,15 +722,18 @@ total_spent_budget = sum(float(p.get("total_spent", 0.0)) for p in projects_dict
 
 with st.container(border=False):
     st.markdown('<div class="pro-card-marker" style="display:none;"></div>', unsafe_allow_html=True)
+    usd_display = f"${usd_cash_val:,.2f}" if usd_cash_val is not None else "⚠️ 조회 실패"
+    krw_display = f"{krw_cash_val:,.0f} 원" if krw_cash_val is not None else "⚠️ 조회 실패"
+    
     summary_html = f'''
     <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 15px;">
         <div class="summary-item">
             <div class="summary-label">외화 예수금</div>
-            <div class="summary-val">${usd_cash_val:,.2f}</div>
+            <div class="summary-val" style="color: {'#f87171' if usd_cash_val is None else 'inherit'};">{usd_display}</div>
         </div>
         <div class="summary-item">
             <div class="summary-label">원화 예수금</div>
-            <div class="summary-val">{krw_cash_val:,.0f} 원</div>
+            <div class="summary-val" style="color: {'#f87171' if krw_cash_val is None else 'inherit'};">{krw_display}</div>
         </div>
     </div>
     '''
