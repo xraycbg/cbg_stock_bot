@@ -491,11 +491,9 @@ load_dotenv(dotenv_path=env_path, override=True)
 # DB 및 API 초기화
 if "github_db" not in st.session_state:
     st.session_state.github_db = GitHubDB()
-if "kis_api" not in st.session_state:
-    st.session_state.kis_api = KISApi()
 
 db = st.session_state.github_db
-api = st.session_state.kis_api
+api = KISApi() # 항상 최신 로직을 반영하기 위해 세션캐시를 사용하지 않음
 
 @st.cache_data(ttl=300, show_spinner=True)
 def get_cached_price(_api, ticker):
