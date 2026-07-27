@@ -921,10 +921,23 @@ if st.session_state.view_mode == "LIST":
         splits_cnt = int(p.get('splits', 40))
         prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
-        db_shares = float(p.get("total_shares", 0.0))
-        db_avg_price = float(p.get("avg_price", 0.0))
-        total_spent = float(p.get("total_spent", 0.0))
         total_budget = float(p.get("total_budget", 10000.0))
+        
+        # 실시간 계좌 연동 (자동 동기화)
+        target_holding = None
+        for hold in holdings:
+            if hold.get("ovrs_pdno") == ticker or hold.get("pdno") == ticker or hold.get("pd_no") == ticker:
+                target_holding = hold
+                break
+                
+        if target_holding:
+            db_shares = float(target_holding.get("ovrs_cblc_qty", target_holding.get("allo_qty", 0.0)))
+            db_avg_price = float(target_holding.get("pchs_avg_pric", 0.0))
+            total_spent = float(target_holding.get("frcr_pchs_amt1", db_shares * db_avg_price))
+        else:
+            db_shares = 0.0
+            db_avg_price = 0.0
+            total_spent = 0.0
         
         # 현재가 조회 (오류 시 평단 또는 0)
         try:
@@ -1155,60 +1168,7 @@ if st.session_state.view_mode == "LIST":
                     if db_success:
                         st.success("💾 깃허브 DB 업데이트 완료!")
                         time.sleep(2)
-                        st.rerun()
-
-            # 구분선
-            st.markdown('<hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 8px 0 16px 0;">', unsafe_allow_html=True)
-
-            # 계좌 잔고 및 DB 동기화 센터
-            st.markdown('<div style="font-size:1.05rem; font-weight:800; color:#ffffff; margin-bottom:12px;">실 계좌 정보</div>', unsafe_allow_html=True)
         
-            target_holding = None
-            for hold in holdings:
-                if hold.get("ovrs_pdno") == ticker or hold.get("pdno") == ticker or hold.get("pd_no") == ticker:
-                    target_holding = hold
-                    break
-            if target_holding:
-                actual_shares = float(target_holding.get("ovrs_cblc_qty", target_holding.get("allo_qty", 0.0)))
-                actual_avg_price = float(target_holding.get("pchs_avg_pric", 0.0))
-            else:
-                actual_shares = 0.0
-                actual_avg_price = 0.0
 
-            sync_html = f'''
-            <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
-                <div class="summary-item">
-                    <div class="summary-label">{ticker} 평단</div>
-                    <div class="summary-val" style="font-size:1.0rem;">${actual_avg_price:.2f}</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">{ticker} 수량</div>
-                    <div class="summary-val" style="font-size:1.0rem;">{actual_shares} 주</div>
-                </div>
-            </div>
-            '''
-            st.markdown(sync_html, unsafe_allow_html=True)
-
-            if st.button(f"DB를 실제 계좌 기준({ticker})으로 동기화", key=f"sync_btn_{p_id}", use_container_width=True):
-                p["total_shares"] = actual_shares
-                p["avg_price"] = actual_avg_price
-                p["total_spent"] = actual_shares * actual_avg_price
-            
-                splits_val = float(p.get("splits", 40.0))
-                if splits_val > 0:
-                    base_daily_budget = p.get("total_budget", 0.0) / splits_val
-                    if base_daily_budget > 0:
-                        p["turn"] = round((p["total_spent"] / base_daily_budget) * 2) / 2
-                    else:
-                        p["turn"] = 0.0
-                else:
-                    p["turn"] = 0.0
-                if actual_shares == 0:
-                    p["turn"] = 0
-            
-                state["projects"][p_id] = p
-                db.update_state(state, sha)
-                st.success("동기화 완료!")
-                st.rerun()
 
 
