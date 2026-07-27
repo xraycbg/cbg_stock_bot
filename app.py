@@ -1100,7 +1100,10 @@ if st.session_state.view_mode == "LIST":
                 st.markdown(sell_html, unsafe_allow_html=True)
 
             today_str = pd.Timestamp.now().strftime("%Y-%m-%d")
-            today_history = [entry for entry in p.get("history", []) if entry.get("date", "").startswith(today_str)]
+            today_history = [
+                entry for entry in p.get("history", []) 
+                if entry.get("date", "").startswith(today_str) and entry.get("env") == api.env
+            ]
             
             already_buy1 = False
             already_buy2 = False
