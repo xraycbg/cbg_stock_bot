@@ -738,7 +738,6 @@ st.markdown(f'''
 <div style="margin-bottom: 20px;">
     <span style="font-size: 1.4rem; font-weight:900; color:#ffffff;">cbg 무매40</span>
     <span style="font-size:0.75rem; font-weight:800; background:rgba(99,102,241,0.25); color:#a5b4fc; padding:2px 8px; border-radius:12px; margin-left:6px;">{env_badge}</span>
-    <span style="font-size:0.75rem; font-weight:800; background:rgba(16,185,129,0.25); color:#34d399; padding:2px 8px; border-radius:12px; margin-left:4px;">🤖 스케줄러 대기 중 (23:00)</span>
 </div>
 ''', unsafe_allow_html=True)
 
@@ -1126,6 +1125,11 @@ if st.session_state.view_mode == "LIST":
                 fail_orders = 0
                 messages = []
                 order_data_log = []
+                
+                # 현재 한국 시간 기준 낮(08시 ~ 22시)이면 예약주문 API 사용
+                current_hour = pd.Timestamp.now(tz="Asia/Seoul").hour
+                is_daytime_res = (8 <= current_hour < 22)
+                res_tag = "[예약] " if is_daytime_res else ""
             
                 if not approve_buy1 and not approve_buy2 and not approve_sell:
                     st.info("👍 오늘 필요한 모든 주문이 이미 성공적으로 접수되었습니다! (더 이상 전송할 주문이 없습니다)")
@@ -1134,42 +1138,42 @@ if st.session_state.view_mode == "LIST":
                         if already_buy1:
                             messages.append(f"⏭️ 절반 매수 (평단가) [LOC / {card_b1_qty}주]: 이미 성공하여 스킵 (중복방지)")
                         else:
-                            success, res = api.place_order(ticker, card_b1_qty, card_b1_price, order_type="34")
+                            success, res = api.place_order(ticker, card_b1_qty, card_b1_price, order_type="34", is_reservation=is_daytime_res)
                             if success:
                                 success_orders += 1
-                                messages.append(f"✅ 절반 매수 (평단가) 전송 성공 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]")
+                                messages.append(f"✅ {res_tag}절반 매수 (평단가) 성공 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]")
                                 order_data_log.append({"구분": "절반 매수 (평단가 LOC)", "수량": card_b1_qty, "단가": card_b1_price})
                             else:
                                 fail_orders += 1
-                                messages.append(f"❌ 절반 매수 (평단가) 전송 실패 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
+                                messages.append(f"❌ {res_tag}절반 매수 (평단가) 실패 [LOC / {card_b1_qty}주 @ ${card_b1_price:.2f}]: {res}")
                             time.sleep(1.0)
                     
                     if card_b2_qty > 0:
                         if already_buy2:
                             messages.append(f"⏭️ 절반 매수 (고가) [LOC / {card_b2_qty}주]: 이미 성공하여 스킵 (중복방지)")
                         else:
-                            success, res = api.place_order(ticker, card_b2_qty, card_b2_price, order_type="34")
+                            success, res = api.place_order(ticker, card_b2_qty, card_b2_price, order_type="34", is_reservation=is_daytime_res)
                             if success:
                                 success_orders += 1
-                                messages.append(f"✅ 절반 매수 (고가) 전송 성공 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]")
+                                messages.append(f"✅ {res_tag}절반 매수 (고가) 성공 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]")
                                 order_data_log.append({"구분": "절반 매수 (고가 LOC)", "수량": card_b2_qty, "단가": card_b2_price})
                             else:
                                 fail_orders += 1
-                                messages.append(f"❌ 절반 매수 (고가) 전송 실패 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
+                                messages.append(f"❌ {res_tag}절반 매수 (고가) 실패 [LOC / {card_b2_qty}주 @ ${card_b2_price:.2f}]: {res}")
                             time.sleep(1.0)
                     
                     if db_shares > 0:
                         if already_sell:
                             messages.append(f"⏭️ 익절 매도 [지정가 / {db_shares}주]: 이미 성공하여 스킵 (중복방지)")
                         else:
-                            success, res = api.place_order(ticker, -db_shares, sell_price, order_type="00")
+                            success, res = api.place_order(ticker, -db_shares, sell_price, order_type="00", is_reservation=is_daytime_res)
                             if success:
                                 success_orders += 1
-                                messages.append(f"✅ 익절 매도 전송 성공 [지정가 / {db_shares:g}주 @ ${sell_price:.2f}]")
+                                messages.append(f"✅ {res_tag}익절 매도 성공 [지정가 / {db_shares:g}주 @ ${sell_price:.2f}]")
                                 order_data_log.append({"구분": "익절 매도", "수량": db_shares, "단가": sell_price})
                             else:
                                 fail_orders += 1
-                                messages.append(f"❌ 익절 매도 전송 실패 [지정가 / {db_shares:g}주 @ ${sell_price:.2f}]: {res}")
+                                messages.append(f"❌ {res_tag}익절 매도 실패 [지정가 / {db_shares:g}주 @ ${sell_price:.2f}]: {res}")
 
                     for msg in messages:
                         st.write(msg)

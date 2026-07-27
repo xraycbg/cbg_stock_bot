@@ -286,14 +286,17 @@ class KISApi:
             raise Exception("잔고 조회 실패: 모든 해외 거래소(NASD, NYSE, AMEX) 조회에서 데이터를 가져오지 못했습니다.")
 
 
-    def place_order(self, ticker, qty, price, order_type="34", exchange="NASD"):
+    def place_order(self, ticker, qty, price, order_type="00", exchange="NASD", is_reservation=False):
         """
         미국 주식 매수/매도 주문을 실행합니다.
         - order_type: "00" (지정가), "34" (LOC 주문)
         - tr_id: self.tr_id_buy 또는 self.tr_id_sell
         """
         token = self.get_access_token()
-        url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order"
+        if is_reservation:
+            url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order-rvsec"
+        else:
+            url = f"{self.base_url}/uapi/overseas-stock/v1/trading/order"
         
         # 종목별 한투 해외거래소 코드 자동 매핑 (SOXL -> AMEX / TQQQ -> NASD)
         t_upper = ticker.upper()
