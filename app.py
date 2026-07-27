@@ -917,10 +917,7 @@ if st.session_state.view_mode == "LIST":
     for p in p_items:
         p_id = p["id"]
         ticker = p.get("target_etf", "TQQQ")
-        turn_cnt = float(p.get('turn', 0.0))
         splits_cnt = int(p.get('splits', 40))
-        prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
-        
         total_budget = float(p.get("total_budget", 10000.0))
         
         # 실시간 계좌 연동 (자동 동기화)
@@ -958,9 +955,20 @@ if st.session_state.view_mode == "LIST":
         else:
             pnl_html = '0.00%'
 
-        # 오늘 2분할 LOC 매수가이드 계산
-        rem_budget = max(0.0, total_budget - total_spent)
-        daily_budget = rem_budget / (splits_cnt - turn_cnt) if turn_cnt < splits_cnt else 0.0
+        # 일일 예산 고정 (정액 분할 매수)
+        daily_budget = total_budget / splits_cnt if splits_cnt > 0 else 0.0
+        
+        # 실계좌 누적 매수금액 기반 회차 자동 추정
+        if daily_budget > 0:
+            turn_cnt = round((total_spent / daily_budget) * 2) / 2
+        else:
+            turn_cnt = 0.0
+        
+        # 주식 매도 후 수량이 0이면 회차 리셋
+        if db_shares == 0:
+            turn_cnt = 0.0
+            
+        prog_pct = min(100, int((turn_cnt / splits_cnt) * 100)) if splits_cnt > 0 else 0
         
         card_b1_price = db_avg_price if db_avg_price > 0 else display_curr
         card_b1_qty = math.floor((daily_budget * 0.5) / card_b1_price) if card_b1_price > 0 else 0
