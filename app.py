@@ -570,8 +570,7 @@ def normalize_state(s):
             "active_project_id": p_id,
             "projects": {
                 p_id: legacy_proj
-            },
-            "app_password": s.get("app_password", "0000")
+            }
         }
     else:
         new_projects = {}
@@ -609,7 +608,7 @@ def normalize_state(s):
 
 state = normalize_state(raw_state)
 
-# 🔒 보안 비밀번호 인증 (세션 기반)
+# 🔒 보안 비밀번호 인증 (세션 기반) - 오직 .env 또는 Streamlit Secrets만 사용!
 def get_env_pwd():
     try:
         env_file = Path(__file__).parent / ".env"
@@ -623,17 +622,14 @@ def get_env_pwd():
     return os.getenv("APP_PASSWORD")
 
 env_pwd = get_env_pwd()
-if env_pwd and state.get("app_password") != env_pwd:
-    state["app_password"] = env_pwd
-    db.update_state(state, sha)
 
-# 1. Local .env -> 2. Streamlit Secrets -> 3. GitHub DB -> 4. Default 'zzzz'
 try:
     cloud_pwd = st.secrets.get("APP_PASSWORD")
 except Exception:
     cloud_pwd = None
 
-APP_PASSWORD = env_pwd or cloud_pwd or state.get("app_password") or "aaaa"
+# Streamlit Secrets를 최우선으로, 그 다음 로컬 환경변수, 모두 없으면 기본값 'aaaa'
+APP_PASSWORD = cloud_pwd or env_pwd or "aaaa"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
