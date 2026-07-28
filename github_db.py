@@ -75,6 +75,10 @@ class GitHubDB:
         새로운 상태(new_state)를 JSON으로 변환하여 깃허브 레포지토리에 저장합니다.
         기존 파일의 sha 값이 필요하지만, 없을 경우 또는 SHA 불일치 시 자동으로 최신 SHA를 로드합니다.
         """
+        # [철통보안] 만약 메모리에 옛날 암호 잔재가 남아있다면 강제로 삭제해서 깃허브 업로드 원천 차단
+        if "app_password" in new_state:
+            del new_state["app_password"]
+
         content_str = json.dumps(new_state, indent=2, ensure_ascii=False)
         content_bytes = content_str.encode("utf-8")
         content_b64 = base64.b64encode(content_bytes).decode("utf-8")
