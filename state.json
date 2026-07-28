@@ -1,19 +1,5 @@
 {
   "projects": {
-    "proj_1785195259": {
-      "id": "proj_1785195259",
-      "name": "SOXL 1차 (40회차 - $200,000)",
-      "target_etf": "SOXL",
-      "total_budget": 200000.0,
-      "splits": 40,
-      "turn": 0.0,
-      "avg_price": 0.0,
-      "total_shares": 0.0,
-      "total_spent": 0.0,
-      "status": "진행중",
-      "created_at": "2026-07-27 23:34:19",
-      "history": []
-    },
     "proj_1785228558": {
       "id": "proj_1785228558",
       "name": "TQQQ 1차 (40회차 - $10,000)",
