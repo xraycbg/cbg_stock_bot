@@ -6,15 +6,29 @@
       "target_etf": "SOXL",
       "total_budget": 10266.0,
       "splits": 40,
-      "turn": 0,
+      "turn": 0.0,
       "avg_price": 0.0,
       "total_shares": 0.0,
       "total_spent": 0.0,
       "status": "진행중",
       "created_at": "2026-07-28 08:51:29",
       "history": []
+    },
+    "proj_1785228833": {
+      "id": "proj_1785228833",
+      "name": "SOXL 2차 (40회차 - $100,000)",
+      "target_etf": "SOXL",
+      "total_budget": 100000.0,
+      "splits": 40,
+      "turn": 0,
+      "avg_price": 0.0,
+      "total_shares": 0.0,
+      "total_spent": 0.0,
+      "status": "진행중",
+      "created_at": "2026-07-28 08:53:53",
+      "history": []
     }
   },
   "app_password": "aaaa",
-  "active_project_id": "proj_1785228689"
+  "active_project_id": "proj_1785228833"
 }
