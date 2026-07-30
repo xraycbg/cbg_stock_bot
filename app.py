@@ -1087,7 +1087,7 @@ if st.session_state.view_mode == "LIST":
             with ord_col2:
                 sell_price = db_avg_price * 1.10
                 sell_html = f"""<div class="sell-box">
-    <div class="box-title-sell">매도 · LOC / 지정가</div>
+    <div class="box-title-sell">매도 · 지정가</div>
     <div class="order-row">
     <div>
     <span class="price-bold">${sell_price:.2f}</span>
