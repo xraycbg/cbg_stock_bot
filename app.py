@@ -75,6 +75,11 @@ st.markdown("""
         color: #f8fafc;
     }
     
+    /* 버튼 글씨 줄바꿈 방지 (어떤 해상도에서도 1줄 유지) */
+    .stButton > button, .stButton > button * {
+        white-space: nowrap !important;
+    }
+    
     header[data-testid="stHeader"], [data-testid="stHeader"] {
         background-color: transparent !important;
         z-index: 1 !important;
