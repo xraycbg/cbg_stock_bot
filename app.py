@@ -1026,6 +1026,7 @@ if st.session_state.view_mode == "LIST":
             if st.button(p['name'], key=f"edit_title_{p_id}", type="tertiary", use_container_width=True, help="클릭하여 제목 수정"):
                 edit_title_dialog(p_id, p['name'])
 
+            remaining_budget = max(0, total_budget - total_spent)
             card_html2 = f"""
     <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 4px; margin-bottom: 12px; text-align: center;">
     <div class="summary-item">
@@ -1051,6 +1052,14 @@ if st.session_state.view_mode == "LIST":
     <div class="summary-item">
     <div class="summary-label">소진된 예산</div>
     <div class="summary-val">${total_spent:,.0f}</div>
+    </div>
+    <div class="summary-item">
+    <div class="summary-label">남은 예산</div>
+    <div class="summary-val">${remaining_budget:,.0f}</div>
+    </div>
+    <div class="summary-item">
+    <div class="summary-label">1회 매수 예산</div>
+    <div class="summary-val">${daily_budget:,.0f}</div>
     </div>
     </div>
 
