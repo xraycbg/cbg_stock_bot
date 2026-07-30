@@ -933,7 +933,7 @@ if st.session_state.view_mode == "CREATE" or not projects_dict:
 # 📋 VIEW MODE 1: 프로젝트 목록 (Pro Card LIST)
 # ==========================================
 if st.session_state.view_mode == "LIST":
-    list_hdr_col1, list_hdr_col2 = st.columns([5, 2])
+    list_hdr_col1, list_hdr_col2 = st.columns([3, 2])
     with list_hdr_col2:
         if st.button("➕ 프로젝트 추가", key="list_add_project_btn", use_container_width=False):
             st.session_state.view_mode = "CREATE"
