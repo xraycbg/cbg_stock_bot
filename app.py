@@ -1206,27 +1206,30 @@ if st.session_state.view_mode == "LIST":
                     tele_text = f"🤖 *주문 전송 결과 알림*\n\n🔹 *프로젝트*: {p.get('name', '알 수 없는 프로젝트')}\n\n{tele_body}"
                     send_telegram_msg(tele_text)
                     
-            # 체결 내역 표시 (주문 전송 버튼 하단)
+            # 체결 내역 표시 (주문 전송 버튼 하단 - 숨김/펼침 기능)
             st.markdown("<hr style='margin: 20px 0; border-color: #1e293b;'>", unsafe_allow_html=True)
-            st.markdown('<div style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: #f8fafc;">📜 최근 30일 체결 내역</div>', unsafe_allow_html=True)
             
-            history_data = get_cached_execution_history(api, ticker)
-            
-            if not history_data:
-                st.markdown('<div style="font-size: 0.9rem; color: #94a3b8; text-align: center; padding: 20px 0; background-color: #0f172a; border-radius: 8px;">최근 30일간 체결된 내역이 없습니다.</div>', unsafe_allow_html=True)
-            else:
-                df_history = pd.DataFrame(history_data)
-                df_history = df_history[["date", "type", "price", "qty", "amount"]]
-                df_history.columns = ["체결일자", "매수/매도 구분", "체결단가($)", "체결수량(주)", "총 금액($)"]
-                
-                st.dataframe(
-                    df_history,
-                    use_container_width=True,
-                    hide_index=True,
-                    column_config={
-                        "체결단가($)": st.column_config.NumberColumn(format="%.2f"),
-                        "체결수량(주)": st.column_config.NumberColumn(format="%d"),
-                        "총 금액($)": st.column_config.NumberColumn(format="%.2f"),
-                    }
-                )
+            with st.expander("📜 최근 30일 체결 내역 보기", expanded=False):
+                try:
+                    history_data = get_cached_execution_history(api, ticker)
+                    
+                    if not history_data:
+                        st.markdown('<div style="font-size: 0.9rem; color: #94a3b8; text-align: center; padding: 20px 0; background-color: #0f172a; border-radius: 8px;">최근 30일간 체결된 내역이 없습니다.</div>', unsafe_allow_html=True)
+                    else:
+                        df_history = pd.DataFrame(history_data)
+                        df_history = df_history[["date", "type", "price", "qty", "amount"]]
+                        df_history.columns = ["체결일자", "매수/매도", "단가($)", "수량", "총금액($)"]
+                        
+                        st.dataframe(
+                            df_history,
+                            use_container_width=True,
+                            hide_index=True,
+                            column_config={
+                                "단가($)": st.column_config.NumberColumn(format="%.2f"),
+                                "수량": st.column_config.NumberColumn(format="%d"),
+                                "총금액($)": st.column_config.NumberColumn(format="%.2f"),
+                            }
+                        )
+                except AttributeError:
+                    st.error("새로운 기능이 업데이트 중입니다. 잠시 후 스트림릿 클라우드를 재부팅(Reboot) 해주세요.")
 
