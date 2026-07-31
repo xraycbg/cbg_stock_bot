@@ -1219,16 +1219,18 @@ if st.session_state.view_mode == "LIST":
                         df_history = pd.DataFrame(history_data)
                         df_history["type"] = df_history["type"].str.replace("LOC매수", "LOC 매수")
                         df_history = df_history[["date", "type", "price", "qty", "amount"]]
-                        df_history.columns = ["체결일자", "매수/매도", "단가($)", "수량", "총금액($)"]
+                        df_history.columns = ["체결일자", "매매구분", "단가($)", "수량", "총금액($)"]
                         
                         st.dataframe(
                             df_history,
                             use_container_width=True,
                             hide_index=True,
                             column_config={
-                                "단가($)": st.column_config.NumberColumn(format="%.2f"),
-                                "수량": st.column_config.NumberColumn(format="%d"),
-                                "총금액($)": st.column_config.NumberColumn(format="%.2f"),
+                                "체결일자": st.column_config.Column(alignment="center"),
+                                "매매구분": st.column_config.Column(alignment="center"),
+                                "단가($)": st.column_config.NumberColumn(format="%.2f", alignment="center"),
+                                "수량": st.column_config.NumberColumn(format="%d", alignment="center"),
+                                "총금액($)": st.column_config.NumberColumn(format="%.2f", alignment="center"),
                             }
                         )
                 except AttributeError:
