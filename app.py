@@ -1221,47 +1221,16 @@ if st.session_state.view_mode == "LIST":
                         df_history = df_history[["date", "type", "price", "qty", "amount"]]
                         df_history.columns = ["체결일자", "매수/매도", "단가($)", "수량", "총금액($)"]
                         
-                        # 내용 정렬을 원래대로(숫자 우측, 텍스트 좌측) 유지하면서 제목만 가운데 정렬하기 위해 HTML 테이블 사용
-                        df_history["단가($)"] = df_history["단가($)"].apply(lambda x: f"{x:.2f}")
-                        df_history["총금액($)"] = df_history["총금액($)"].apply(lambda x: f"{x:.2f}")
-                        
-                        html_table = df_history.to_html(index=False, classes="custom-history-table")
-                        css = """
-                        <style>
-                        .custom-history-table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            font-size: 0.9rem;
-                            color: #f8fafc;
-                            background-color: #0f172a;
-                            border-radius: 8px;
-                            overflow: hidden;
-                        }
-                        .custom-history-table th {
-                            text-align: center !important;
-                            background-color: #1e293b;
-                            padding: 10px;
-                            border: 1px solid #334155;
-                            font-weight: 600;
-                        }
-                        .custom-history-table td {
-                            padding: 10px;
-                            border: 1px solid #334155;
-                        }
-                        .custom-history-table tr:hover {
-                            background-color: #1e293b;
-                        }
-                        .custom-history-table td:nth-child(1), .custom-history-table td:nth-child(2) {
-                            text-align: left !important;
-                        }
-                        .custom-history-table td:nth-child(3), .custom-history-table td:nth-child(4), .custom-history-table td:nth-child(5) {
-                            text-align: right !important;
-                        }
-                        </style>
-                        """
-                        # HTML에 줄바꿈이나 들여쓰기가 있으면 마크다운이 코드블록으로 인식하므로 공백/줄바꿈 제거
-                        final_html = (css + html_table).replace('\n', '')
-                        st.markdown(final_html, unsafe_allow_html=True)
+                        st.dataframe(
+                            df_history,
+                            use_container_width=True,
+                            hide_index=True,
+                            column_config={
+                                "단가($)": st.column_config.NumberColumn(format="%.2f"),
+                                "수량": st.column_config.NumberColumn(format="%d"),
+                                "총금액($)": st.column_config.NumberColumn(format="%.2f"),
+                            }
+                        )
                 except AttributeError:
                     st.error("새로운 기능이 업데이트 중입니다. 잠시 후 스트림릿 클라우드를 재부팅(Reboot) 해주세요.")
 
