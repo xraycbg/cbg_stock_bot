@@ -468,6 +468,67 @@ class KISApi:
         
         return orders
 
+    def get_execution_history(self, ticker, days=30):
+        """
+        특정 종목의 최근 N일간의 체결 내역을 불러옵니다.
+        """
+        token = self.get_access_token()
+        url = f"{self.base_url}/uapi/overseas-stock/v1/trading/inquire-ccnl"
+        headers = {
+            "content-type": "application/json",
+            "authorization": f"Bearer {token}",
+            "appkey": self.appkey,
+            "appsecret": self.appsecret,
+            "tr_id": "TTTS3035R"
+        }
+        
+        from datetime import datetime, timedelta
+        end_dt = datetime.now()
+        start_dt = end_dt - timedelta(days=days)
+        
+        params = {
+            "CANO": self.cano,
+            "ACNT_PRDT_CD": self.acnt_prdt_cd,
+            "PDNO": ticker,
+            "ORD_STRT_DT": start_dt.strftime("%Y%m%d"),
+            "ORD_END_DT": end_dt.strftime("%Y%m%d"),
+            "SLL_BUY_DVSN": "00",
+            "CCLD_NCCS_DVSN": "01", # 01: 체결
+            "OVRS_EXCG_CD": "%",
+            "SORT_SQN": "DS", # 내림차순
+            "ORD_DT": "",
+            "ORD_GNO_BRNO": "",
+            "ODNO": "",
+            "CTX_AREA_NK200": "",
+            "CTX_AREA_FK200": ""
+        }
+        
+        history = []
+        try:
+            res = requests.get(url, headers=headers, params=params)
+            if res.status_code == 200:
+                data = res.json()
+                if "output" in data and isinstance(data["output"], list):
+                    for item in data["output"]:
+                        ccld_qty = int(item.get("ft_ccld_qty") or item.get("ord_qty", 0))
+                        if ccld_qty <= 0:
+                            continue
+                            
+                        # Format the date nicely
+                        raw_date = item.get("ord_dt", "")
+                        formatted_date = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:]}" if len(raw_date) == 8 else raw_date
+                        
+                        history.append({
+                            "date": formatted_date,
+                            "type": item.get("sll_buy_dvsn_cd_name", ""),
+                            "price": float(item.get("ft_ccld_unpr3") or 0.0),
+                            "qty": ccld_qty,
+                            "amount": float(item.get("ft_ccld_amt3") or 0.0)
+                        })
+        except Exception as e:
+            print("get_execution_history error:", e)
+            
+        return history
 
 if __name__ == "__main__":
     # 로컬 간단 테스트
