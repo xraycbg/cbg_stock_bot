@@ -1207,9 +1207,9 @@ if st.session_state.view_mode == "LIST":
                     send_telegram_msg(tele_text)
                     
             # 체결 내역 표시 (주문 전송 버튼 하단 - 숨김/펼침 기능)
-            st.markdown("<hr style='margin: 20px 0; border-color: #1e293b;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 5px 0 15px 0; border-color: #1e293b;'>", unsafe_allow_html=True)
             
-            with st.expander("📜 최근 30일 체결 내역 보기", expanded=False):
+            with st.expander("최근 30일 체결 내역 보기", expanded=False):
                 try:
                     history_data = get_cached_execution_history(api, ticker)
                     
@@ -1217,6 +1217,7 @@ if st.session_state.view_mode == "LIST":
                         st.markdown('<div style="font-size: 0.9rem; color: #94a3b8; text-align: center; padding: 20px 0; background-color: #0f172a; border-radius: 8px;">최근 30일간 체결된 내역이 없습니다.</div>', unsafe_allow_html=True)
                     else:
                         df_history = pd.DataFrame(history_data)
+                        df_history["type"] = df_history["type"].str.replace("LOC매수", "LOC 매수")
                         df_history = df_history[["date", "type", "price", "qty", "amount"]]
                         df_history.columns = ["체결일자", "매수/매도", "단가($)", "수량", "총금액($)"]
                         
@@ -1225,9 +1226,11 @@ if st.session_state.view_mode == "LIST":
                             use_container_width=True,
                             hide_index=True,
                             column_config={
-                                "단가($)": st.column_config.NumberColumn(format="%.2f"),
-                                "수량": st.column_config.NumberColumn(format="%d"),
-                                "총금액($)": st.column_config.NumberColumn(format="%.2f"),
+                                "체결일자": st.column_config.Column(alignment="center"),
+                                "매수/매도": st.column_config.Column(alignment="center"),
+                                "단가($)": st.column_config.NumberColumn(format="%.2f", alignment="center"),
+                                "수량": st.column_config.NumberColumn(format="%d", alignment="center"),
+                                "총금액($)": st.column_config.NumberColumn(format="%.2f", alignment="center"),
                             }
                         )
                 except AttributeError:
