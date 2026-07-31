@@ -1219,30 +1219,27 @@ if st.session_state.view_mode == "LIST":
                         df_history = pd.DataFrame(history_data)
                         df_history["type"] = df_history["type"].str.replace("LOC매수", "LOC 매수")
                         df_history = df_history[["date", "type", "price", "qty", "amount"]]
-                        html_table = """
-                        <div style="border: 1px solid #1e293b; border-radius: 8px; overflow: hidden;">
-                        <table style="width:100%; text-align:center; border-collapse: collapse; font-size: 0.9rem;">
-                            <thead>
-                                <tr style="background-color: #0f172a; border-bottom: 1px solid #1e293b;">
-                                    <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">체결일자</th>
-                                    <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">매매구분</th>
-                                    <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">단가($)</th>
-                                    <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">수량</th>
-                                    <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">총금액($)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                        """
+                        html_table = """<div style="border: 1px solid #1e293b; border-radius: 8px; overflow: hidden;">
+<table style="width:100%; text-align:center; border-collapse: collapse; font-size: 0.9rem;">
+    <thead>
+        <tr style="background-color: #0f172a; border-bottom: 1px solid #1e293b;">
+            <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">체결일자</th>
+            <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">매매구분</th>
+            <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">단가($)</th>
+            <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">수량</th>
+            <th style="text-align:center; padding: 12px 8px; font-weight: 600; color: #94a3b8;">총금액($)</th>
+        </tr>
+    </thead>
+    <tbody>"""
                         for _, row in df_history.iterrows():
                             html_table += f"""
-                                <tr style="border-bottom: 1px solid #1e293b; background-color: #1e293b40;">
-                                    <td style="padding: 12px 8px;">{row['date']}</td>
-                                    <td style="padding: 12px 8px;">{row['type']}</td>
-                                    <td style="padding: 12px 8px;">{row['price']:.2f}</td>
-                                    <td style="padding: 12px 8px;">{row['qty']}</td>
-                                    <td style="padding: 12px 8px;">{row['amount']:.2f}</td>
-                                </tr>
-                            """
+        <tr style="border-bottom: 1px solid #1e293b; background-color: #1e293b40;">
+            <td style="padding: 12px 8px;">{row['date']}</td>
+            <td style="padding: 12px 8px;">{row['type']}</td>
+            <td style="padding: 12px 8px;">{row['price']:.2f}</td>
+            <td style="padding: 12px 8px;">{row['qty']}</td>
+            <td style="padding: 12px 8px;">{row['amount']:.2f}</td>
+        </tr>"""
                         html_table += "</tbody></table></div>"
                         st.markdown(html_table, unsafe_allow_html=True)
                 except AttributeError:
