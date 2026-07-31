@@ -1259,7 +1259,9 @@ if st.session_state.view_mode == "LIST":
                         }
                         </style>
                         """
-                        st.markdown(css + html_table, unsafe_allow_html=True)
+                        # HTML에 줄바꿈이나 들여쓰기가 있으면 마크다운이 코드블록으로 인식하므로 공백/줄바꿈 제거
+                        final_html = (css + html_table).replace('\n', '')
+                        st.markdown(final_html, unsafe_allow_html=True)
                 except AttributeError:
                     st.error("새로운 기능이 업데이트 중입니다. 잠시 후 스트림릿 클라우드를 재부팅(Reboot) 해주세요.")
 
